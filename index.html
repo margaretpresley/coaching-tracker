@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -34,499 +33,496 @@
       min-height: 100vh;
     }
 
-```
-/* ── Header ── */
-.app-header {
-  background: linear-gradient(135deg, var(--sky) 0%, #38bdf8 100%);
-  color: #fff;
-  padding: 18px 20px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 20px rgba(14,165,233,.35);
-}
-.app-header .h1 {
-  font-family: 'Nunito', sans-serif;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -.3px;
-  color: #fff;
-}
-.app-header .sub {
-  font-size: 12px;
-  color: rgba(255,255,255,.75);
-  margin-top: 1px;
-  font-weight: 600;
-}
-.coach-pill {
-  background: rgba(255,255,255,.22);
-  border: 2px solid rgba(255,255,255,.4);
-  border-radius: 99px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Nunito', sans-serif;
-}
-.coach-pill select {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-  outline: none;
-  cursor: pointer;
-}
-.coach-pill select option { color: var(--ink); background: #fff; }
+    /* ── Header ── */
+    .app-header {
+      background: linear-gradient(135deg, var(--sky) 0%, #38bdf8 100%);
+      color: #fff;
+      padding: 18px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(14,165,233,.35);
+    }
+    .app-header .h1 {
+      font-family: 'Nunito', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -.3px;
+      color: #fff;
+    }
+    .app-header .sub {
+      font-size: 12px;
+      color: rgba(255,255,255,.75);
+      margin-top: 1px;
+      font-weight: 600;
+    }
+    .coach-pill {
+      background: rgba(255,255,255,.22);
+      border: 2px solid rgba(255,255,255,.4);
+      border-radius: 99px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Nunito', sans-serif;
+    }
+    .coach-pill select {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      outline: none;
+      cursor: pointer;
+    }
+    .coach-pill select option { color: var(--ink); background: #fff; }
 
-/* ── Sync bar ── */
-.sync-bar {
-  background: var(--mint);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  padding: 8px;
-  display: none;
-}
-.sync-bar.show { display: block; }
-.sync-bar.error { background: var(--coral); }
+    /* ── Sync bar ── */
+    .sync-bar {
+      background: var(--mint);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px;
+      display: none;
+    }
+    .sync-bar.show { display: block; }
+    .sync-bar.error { background: var(--coral); }
 
-/* ── Nav ── */
-.bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: #fff;
-  display: flex;
-  border-top: 2px solid #e0f2fe;
-  z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -4px 20px rgba(14,165,233,.10);
-}
-.nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 4px 10px;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color .2s;
-  position: relative;
-}
-.nav-btn .icon { font-size: 24px; line-height: 1; transition: transform .2s; }
-.nav-btn.active { color: var(--sky); }
-.nav-btn.active .icon { transform: scale(1.15); }
-.nav-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 20%; right: 20%;
-  height: 3px;
-  background: var(--sky);
-  border-radius: 3px 3px 0 0;
-}
+    /* ── Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      display: flex;
+      border-top: 2px solid #e0f2fe;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+      box-shadow: 0 -4px 20px rgba(14,165,233,.10);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 4px 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Nunito', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-btn .icon { font-size: 24px; line-height: 1; transition: transform .2s; }
+    .nav-btn.active { color: var(--sky); }
+    .nav-btn.active .icon { transform: scale(1.15); }
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 20%; right: 20%;
+      height: 3px;
+      background: var(--sky);
+      border-radius: 3px 3px 0 0;
+    }
 
-/* ── Main ── */
-.main { padding: 18px 16px 100px; max-width: 900px; margin: 0 auto; }
+    /* ── Main ── */
+    .main { padding: 18px 16px 100px; max-width: 900px; margin: 0 auto; }
 
-/* ── Cards ── */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 22px;
-  margin-bottom: 14px;
-  border: 1.5px solid #e0f2fe;
-}
-.card-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--ink);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 14px;
+      border: 1.5px solid #e0f2fe;
+    }
+    .card-title {
+      font-family: 'Nunito', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-/* ── Stat chips ── */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
-.stat-chip {
-  border-radius: 16px;
-  padding: 18px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.stat-chip .val {
-  font-family: 'Nunito', sans-serif;
-  font-size: 36px;
-  font-weight: 900;
-  line-height: 1;
-}
-.stat-chip .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; opacity: .8; }
-.chip-sky   { background: #e0f2fe; color: #0369a1; }
-.chip-sun   { background: #fef3c7; color: #92400e; }
-.chip-coral { background: #ffe4e6; color: #9f1239; }
+    /* ── Stat chips ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat-chip {
+      border-radius: 16px;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .stat-chip .val {
+      font-family: 'Nunito', sans-serif;
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .stat-chip .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; opacity: .8; }
+    .chip-sky   { background: #e0f2fe; color: #0369a1; }
+    .chip-sun   { background: #fef3c7; color: #92400e; }
+    .chip-coral { background: #ffe4e6; color: #9f1239; }
 
-/* ── Activity feed ── */
-.feed-item {
-  border-left: 4px solid var(--sky);
-  padding: 12px 14px;
-  background: #f8faff;
-  border-radius: 0 12px 12px 0;
-  margin-bottom: 10px;
-}
-.feed-item .meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-.feed-item .title { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; }
-.feed-item .imp { font-size: 13px; color: var(--body); margin-top: 3px; }
-.flag-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #fef3c7; color: #92400e;
-  font-size: 11px; font-weight: 700;
-  padding: 3px 9px; border-radius: 99px; margin-top: 6px;
-}
+    /* ── Activity feed ── */
+    .feed-item {
+      border-left: 4px solid var(--sky);
+      padding: 12px 14px;
+      background: #f8faff;
+      border-radius: 0 12px 12px 0;
+      margin-bottom: 10px;
+    }
+    .feed-item .meta { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+    .feed-item .title { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; }
+    .feed-item .imp { font-size: 13px; color: var(--body); margin-top: 3px; }
+    .flag-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fef3c7; color: #92400e;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 99px; margin-top: 6px;
+    }
 
-/* ── Teacher cards ── */
-.teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
-.teacher-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px;
-  cursor: pointer;
-  border: 2px solid #e0f2fe;
-  transition: border-color .2s, box-shadow .2s, transform .15s;
-}
-.teacher-card:hover { border-color: var(--sky); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.teacher-card .tc-name { font-family: 'Nunito', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 3px; }
-.teacher-card .tc-meta { font-size: 13px; color: var(--body); margin-bottom: 12px; font-weight: 600; }
-.teacher-card .tc-goal {
-  background: #e0f2fe; color: #0369a1;
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 800;
-  padding: 5px 11px; border-radius: 99px;
-  font-family: 'Nunito', sans-serif;
-}
-.teacher-card .tc-stats { font-size: 12px; color: var(--muted); margin-top: 12px; display: flex; justify-content: space-between; font-weight: 600; }
-.avail-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  display: inline-block; flex-shrink: 0;
-}
-.avail-now { background: var(--mint); box-shadow: 0 0 0 3px #d1fae5; }
-.avail-no  { background: #cbd5e1; }
+    /* ── Teacher cards ── */
+    .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+    .teacher-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      cursor: pointer;
+      border: 2px solid #e0f2fe;
+      transition: border-color .2s, box-shadow .2s, transform .15s;
+    }
+    .teacher-card:hover { border-color: var(--sky); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .teacher-card .tc-name { font-family: 'Nunito', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 3px; }
+    .teacher-card .tc-meta { font-size: 13px; color: var(--body); margin-bottom: 12px; font-weight: 600; }
+    .teacher-card .tc-goal {
+      background: #e0f2fe; color: #0369a1;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 800;
+      padding: 5px 11px; border-radius: 99px;
+      font-family: 'Nunito', sans-serif;
+    }
+    .teacher-card .tc-stats { font-size: 12px; color: var(--muted); margin-top: 12px; display: flex; justify-content: space-between; font-weight: 600; }
+    .avail-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+    }
+    .avail-now { background: var(--mint); box-shadow: 0 0 0 3px #d1fae5; }
+    .avail-no  { background: #cbd5e1; }
 
-/* ── Forms ── */
-.form-group { margin-bottom: 18px; }
-.form-label {
-  font-size: 13px; font-weight: 800; color: var(--body);
-  text-transform: uppercase; letter-spacing: .5px;
-  margin-bottom: 7px; display: block;
-  font-family: 'Nunito', sans-serif;
-}
-.form-input {
-  width: 100%; padding: 14px 16px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  font-family: 'Nunito Sans', sans-serif;
-  font-size: 15px; color: var(--ink);
-  background: #fff;
-  transition: border-color .2s, box-shadow .2s;
-  outline: none;
-}
-.form-input:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    /* ── Forms ── */
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+      font-size: 13px; font-weight: 800; color: var(--body);
+      text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 7px; display: block;
+      font-family: 'Nunito', sans-serif;
+    }
+    .form-input {
+      width: 100%; padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 15px; color: var(--ink);
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(14,165,233,.12); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-/* ── Look-fors ── */
-.lookfor-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 14px; background: #f8faff;
-  border-radius: 12px; margin-bottom: 8px;
-  border: 1.5px solid #e0f2fe;
-}
-.lookfor-text { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.4; }
-.lookfor-btns { display: flex; gap: 6px; flex-shrink: 0; }
-.lf-btn {
-  padding: 7px 12px; border-radius: 9px; border: none;
-  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
-  cursor: pointer; transition: all .15s;
-  background: #f1f5f9; color: #94a3b8;
-}
-.lf-btn.yes    { background: #d1fae5; color: #065f46; }
-.lf-btn.partial{ background: #fef3c7; color: #92400e; }
-.lf-btn.no     { background: #fee2e2; color: #991b1b; }
+    /* ── Look-fors ── */
+    .lookfor-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px; background: #f8faff;
+      border-radius: 12px; margin-bottom: 8px;
+      border: 1.5px solid #e0f2fe;
+    }
+    .lookfor-text { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.4; }
+    .lookfor-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .lf-btn {
+      padding: 7px 12px; border-radius: 9px; border: none;
+      font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+      cursor: pointer; transition: all .15s;
+      background: #f1f5f9; color: #94a3b8;
+    }
+    .lf-btn.yes    { background: #d1fae5; color: #065f46; }
+    .lf-btn.partial{ background: #fef3c7; color: #92400e; }
+    .lf-btn.no     { background: #fee2e2; color: #991b1b; }
 
-/* ── Impression selector ── */
-.imp-row { display: flex; gap: 10px; }
-.imp-btn {
-  flex: 1; padding: 14px 8px; border-radius: 12px; border: 2px solid var(--border);
-  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
-  background: #fff; cursor: pointer; transition: all .18s;
-  text-align: center; line-height: 1.3;
-}
-.imp-btn.sel-strong  { background: #d1fae5; border-color: var(--mint); color: #065f46; }
-.imp-btn.sel-on      { background: #e0f2fe; border-color: var(--sky); color: #0369a1; }
-.imp-btn.sel-support { background: #fee2e2; border-color: var(--coral); color: #991b1b; }
+    /* ── Impression selector ── */
+    .imp-row { display: flex; gap: 10px; }
+    .imp-btn {
+      flex: 1; padding: 14px 8px; border-radius: 12px; border: 2px solid var(--border);
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      background: #fff; cursor: pointer; transition: all .18s;
+      text-align: center; line-height: 1.3;
+    }
+    .imp-btn.sel-strong  { background: #d1fae5; border-color: var(--mint); color: #065f46; }
+    .imp-btn.sel-on      { background: #e0f2fe; border-color: var(--sky); color: #0369a1; }
+    .imp-btn.sel-support { background: #fee2e2; border-color: var(--coral); color: #991b1b; }
 
-/* ── Goal display ── */
-.goal-banner {
-  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-  border-radius: 14px; padding: 16px 18px; margin-bottom: 16px;
-  border: 1.5px solid #7dd3fc;
-}
-.goal-banner .goal-num {
-  font-size: 12px; font-weight: 800; color: #0369a1;
-  text-transform: uppercase; letter-spacing: .5px;
-  font-family: 'Nunito', sans-serif;
-}
-.goal-banner .goal-name {
-  font-family: 'Nunito', sans-serif;
-  font-size: 18px; font-weight: 900; color: #0c4a6e; margin-top: 3px;
-}
+    /* ── Goal display ── */
+    .goal-banner {
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      border-radius: 14px; padding: 16px 18px; margin-bottom: 16px;
+      border: 1.5px solid #7dd3fc;
+    }
+    .goal-banner .goal-num {
+      font-size: 12px; font-weight: 800; color: #0369a1;
+      text-transform: uppercase; letter-spacing: .5px;
+      font-family: 'Nunito', sans-serif;
+    }
+    .goal-banner .goal-name {
+      font-family: 'Nunito', sans-serif;
+      font-size: 18px; font-weight: 900; color: #0c4a6e; margin-top: 3px;
+    }
 
-/* ── Buttons ── */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  padding: 14px 22px; border-radius: 12px; border: none;
-  font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
-  cursor: pointer; transition: all .18s;
-}
-.btn-primary { background: var(--sky); color: #fff; }
-.btn-primary:hover { background: var(--sky2); box-shadow: 0 4px 16px rgba(14,165,233,.4); transform: translateY(-1px); }
-.btn-secondary { background: #f1f5f9; color: var(--ink); }
-.btn-secondary:hover { background: #e2e8f0; }
-.btn-ghost { background: transparent; color: var(--sky); padding: 10px 14px; }
-.btn-full { width: 100%; }
-.btn-sm { padding: 9px 14px; font-size: 13px; border-radius: 9px; }
-.btn-danger { background: #fee2e2; color: var(--coral); }
-.btn-sun { background: var(--sun); color: #fff; }
-.btn-sun:hover { background: var(--sun2); box-shadow: 0 4px 16px rgba(245,158,11,.4); }
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 14px 22px; border-radius: 12px; border: none;
+      font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800;
+      cursor: pointer; transition: all .18s;
+    }
+    .btn-primary { background: var(--sky); color: #fff; }
+    .btn-primary:hover { background: var(--sky2); box-shadow: 0 4px 16px rgba(14,165,233,.4); transform: translateY(-1px); }
+    .btn-secondary { background: #f1f5f9; color: var(--ink); }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-ghost { background: transparent; color: var(--sky); padding: 10px 14px; }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 9px 14px; font-size: 13px; border-radius: 9px; }
+    .btn-danger { background: #fee2e2; color: var(--coral); }
+    .btn-sun { background: var(--sun); color: #fff; }
+    .btn-sun:hover { background: var(--sun2); box-shadow: 0 4px 16px rgba(245,158,11,.4); }
 
-/* ── Schedule ── */
-.now-header {
-  display: flex; align-items: center; gap: 9px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 15px; font-weight: 800; color: var(--mint2);
-  margin-bottom: 12px;
-}
-.now-pulse {
-  width: 11px; height: 11px; border-radius: 50%;
-  background: var(--mint);
-  animation: pulse 1.8s infinite;
-}
-@keyframes pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.5); }
-  50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
-}
-.avail-chip {
-  display: flex; align-items: center; gap: 12px;
-  background: #f0fdf4; border: 2px solid #a7f3d0;
-  border-radius: 14px; padding: 13px 16px; margin-bottom: 10px;
-  cursor: pointer; transition: all .2s;
-}
-.avail-chip:hover { border-color: var(--mint); box-shadow: 0 4px 12px rgba(16,185,129,.15); transform: translateY(-1px); }
-.avail-chip .ac-name { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; }
-.avail-chip .ac-meta { font-size: 12px; color: var(--body); font-weight: 600; }
-.avail-chip .ac-time { font-size: 13px; color: var(--mint2); font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
-.visit-row {
-  display: flex; align-items: center; gap: 12px;
-  background: #f8faff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
-  border: 1.5px solid #e0f2fe;
-}
-.visit-row .vr-time { font-size: 13px; color: var(--sky2); font-weight: 800; min-width: 60px; font-family: 'Nunito', sans-serif; }
-.visit-row .vr-name { font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; }
-.visit-row .vr-coach { font-size: 12px; color: var(--body); font-weight: 600; }
-.visit-row .vr-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-.visit-status {
-  font-size: 11px; font-weight: 800; padding: 4px 9px;
-  border-radius: 99px; text-transform: uppercase; letter-spacing: .4px;
-  font-family: 'Nunito', sans-serif;
-}
-.vs-planned   { background: #e0f2fe; color: #0369a1; }
-.vs-done      { background: #d1fae5; color: #065f46; }
-.vs-cancelled { background: #f1f5f9; color: #94a3b8; }
+    /* ── Schedule ── */
+    .now-header {
+      display: flex; align-items: center; gap: 9px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 15px; font-weight: 800; color: var(--mint2);
+      margin-bottom: 12px;
+    }
+    .now-pulse {
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--mint);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.5); }
+      50% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+    }
+    .avail-chip {
+      display: flex; align-items: center; gap: 12px;
+      background: #f0fdf4; border: 2px solid #a7f3d0;
+      border-radius: 14px; padding: 13px 16px; margin-bottom: 10px;
+      cursor: pointer; transition: all .2s;
+    }
+    .avail-chip:hover { border-color: var(--mint); box-shadow: 0 4px 12px rgba(16,185,129,.15); transform: translateY(-1px); }
+    .avail-chip .ac-name { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; }
+    .avail-chip .ac-meta { font-size: 12px; color: var(--body); font-weight: 600; }
+    .avail-chip .ac-time { font-size: 13px; color: var(--mint2); font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
+    .visit-row {
+      display: flex; align-items: center; gap: 12px;
+      background: #f8faff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+      border: 1.5px solid #e0f2fe;
+    }
+    .visit-row .vr-time { font-size: 13px; color: var(--sky2); font-weight: 800; min-width: 60px; font-family: 'Nunito', sans-serif; }
+    .visit-row .vr-name { font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; }
+    .visit-row .vr-coach { font-size: 12px; color: var(--body); font-weight: 600; }
+    .visit-row .vr-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .visit-status {
+      font-size: 11px; font-weight: 800; padding: 4px 9px;
+      border-radius: 99px; text-transform: uppercase; letter-spacing: .4px;
+      font-family: 'Nunito', sans-serif;
+    }
+    .vs-planned   { background: #e0f2fe; color: #0369a1; }
+    .vs-done      { background: #d1fae5; color: #065f46; }
+    .vs-cancelled { background: #f1f5f9; color: #94a3b8; }
 
-/* ── Teacher detail ── */
-.obs-entry {
-  border-left: 4px solid var(--sky);
-  padding: 14px 16px; background: #f8faff;
-  border-radius: 0 14px 14px 0; margin-bottom: 12px;
-}
-.obs-entry .oe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 5px; }
-.obs-entry .oe-date { font-size: 12px; color: var(--muted); font-weight: 700; }
-.obs-entry .oe-goal { font-size: 12px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 3px 9px; border-radius: 99px; font-family: 'Nunito', sans-serif; }
-.obs-entry .oe-glow { font-size: 14px; margin-bottom: 5px; font-weight: 600; }
-.obs-entry .oe-grow { font-size: 14px; color: var(--sky2); font-weight: 600; }
-.obs-entry .oe-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 5px; }
+    /* ── Teacher detail ── */
+    .obs-entry {
+      border-left: 4px solid var(--sky);
+      padding: 14px 16px; background: #f8faff;
+      border-radius: 0 14px 14px 0; margin-bottom: 12px;
+    }
+    .obs-entry .oe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 5px; }
+    .obs-entry .oe-date { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .obs-entry .oe-goal { font-size: 12px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 3px 9px; border-radius: 99px; font-family: 'Nunito', sans-serif; }
+    .obs-entry .oe-glow { font-size: 14px; margin-bottom: 5px; font-weight: 600; }
+    .obs-entry .oe-grow { font-size: 14px; color: var(--sky2); font-weight: 600; }
+    .obs-entry .oe-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 5px; }
 
-/* ── Analytics ── */
-.insight-card {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border-radius: var(--radius); padding: 20px;
-  margin-bottom: 14px; border: 1.5px solid #fcd34d;
-}
-.insight-card .ic-label { font-size: 12px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: .5px; font-family: 'Nunito', sans-serif; }
-.insight-card .ic-text  { font-size: 15px; color: #78350f; margin-top: 7px; line-height: 1.6; font-weight: 600; }
-.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.bar-label { font-size: 13px; font-weight: 700; min-width: 65px; }
-.bar-track { flex: 1; background: #e0f2fe; border-radius: 99px; height: 10px; overflow: hidden; }
-.bar-fill  { height: 100%; border-radius: 99px; background: var(--sky); transition: width .6s cubic-bezier(.4,0,.2,1); }
-.bar-count { font-size: 13px; font-weight: 800; color: var(--body); min-width: 24px; text-align: right; }
+    /* ── Analytics ── */
+    .insight-card {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border-radius: var(--radius); padding: 20px;
+      margin-bottom: 14px; border: 1.5px solid #fcd34d;
+    }
+    .insight-card .ic-label { font-size: 12px; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: .5px; font-family: 'Nunito', sans-serif; }
+    .insight-card .ic-text  { font-size: 15px; color: #78350f; margin-top: 7px; line-height: 1.6; font-weight: 600; }
+    .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .bar-label { font-size: 13px; font-weight: 700; min-width: 65px; }
+    .bar-track { flex: 1; background: #e0f2fe; border-radius: 99px; height: 10px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; background: var(--sky); transition: width .6s cubic-bezier(.4,0,.2,1); }
+    .bar-count { font-size: 13px; font-weight: 800; color: var(--body); min-width: 24px; text-align: right; }
 
-/* ── Empty states ── */
-.empty { text-align: center; padding: 44px 20px; color: var(--muted); }
-.empty .e-icon { font-size: 52px; margin-bottom: 14px; }
-.empty p { font-size: 15px; line-height: 1.6; font-weight: 600; }
+    /* ── Empty states ── */
+    .empty { text-align: center; padding: 44px 20px; color: var(--muted); }
+    .empty .e-icon { font-size: 52px; margin-bottom: 14px; }
+    .empty p { font-size: 15px; line-height: 1.6; font-weight: 600; }
 
-/* ── Modal ── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(15,23,42,.4);
-  z-index: 200; display: none; align-items: flex-end;
-  backdrop-filter: blur(2px);
-}
-.modal-overlay.show { display: flex; }
-.modal {
-  background: #fff; width: 100%;
-  border-radius: 24px 24px 0 0;
-  padding: 10px 20px 44px;
-  max-height: 88vh; overflow-y: auto;
-  animation: slideUp .28s cubic-bezier(.4,0,.2,1);
-  border-top: 3px solid #e0f2fe;
-}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-handle { width: 44px; height: 5px; background: #e0f2fe; border-radius: 99px; margin: 14px auto 20px; }
-.modal-title { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; margin-bottom: 22px; color: var(--ink); }
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,.4);
+      z-index: 200; display: none; align-items: flex-end;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; width: 100%;
+      border-radius: 24px 24px 0 0;
+      padding: 10px 20px 44px;
+      max-height: 88vh; overflow-y: auto;
+      animation: slideUp .28s cubic-bezier(.4,0,.2,1);
+      border-top: 3px solid #e0f2fe;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 44px; height: 5px; background: #e0f2fe; border-radius: 99px; margin: 14px auto 20px; }
+    .modal-title { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 900; margin-bottom: 22px; color: var(--ink); }
 
-/* ── Config banner ── */
-.config-banner {
-  background: #fffbeb; border: 2px solid #fcd34d;
-  border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
-}
-.config-banner p { font-size: 14px; color: #92400e; line-height: 1.6; font-weight: 600; }
-.config-banner code { font-size: 12px; background: #fef3c7; padding: 2px 6px; border-radius: 5px; }
+    /* ── Config banner ── */
+    .config-banner {
+      background: #fffbeb; border: 2px solid #fcd34d;
+      border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+    }
+    .config-banner p { font-size: 14px; color: #92400e; line-height: 1.6; font-weight: 600; }
+    .config-banner code { font-size: 12px; background: #fef3c7; padding: 2px 6px; border-radius: 5px; }
 
-.section-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px; font-weight: 900; color: var(--muted);
-  text-transform: uppercase; letter-spacing: .7px;
-  margin-bottom: 12px; margin-top: 20px;
-}
-.section-title:first-child { margin-top: 0; }
+    .section-title {
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px; font-weight: 900; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .7px;
+      margin-bottom: 12px; margin-top: 20px;
+    }
+    .section-title:first-child { margin-top: 0; }
 
-.checkbox-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 0;
-}
-.checkbox-row input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--sky); cursor: pointer; flex-shrink: 0; }
-.checkbox-row label { font-size: 15px; font-weight: 700; cursor: pointer; }
+    .checkbox-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0;
+    }
+    .checkbox-row input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--sky); cursor: pointer; flex-shrink: 0; }
+    .checkbox-row label { font-size: 15px; font-weight: 700; cursor: pointer; }
 
-.days-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-.day-toggle {
-  padding: 8px 14px; border-radius: 10px; border: 2px solid var(--border);
-  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
-  background: #fff; cursor: pointer; transition: all .15s;
-}
-.day-toggle.on { background: var(--sky); border-color: var(--sky); color: #fff; }
+    .days-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .day-toggle {
+      padding: 8px 14px; border-radius: 10px; border: 2px solid var(--border);
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      background: #fff; cursor: pointer; transition: all .15s;
+    }
+    .day-toggle.on { background: var(--sky); border-color: var(--sky); color: #fff; }
 
-.back-btn {
-  display: flex; align-items: center; gap: 7px;
-  color: var(--sky); font-size: 15px; font-weight: 800;
-  background: none; border: none; cursor: pointer;
-  padding: 0 0 18px; font-family: 'Nunito', sans-serif;
-}
-.back-btn:hover { color: var(--sky2); }
+    .back-btn {
+      display: flex; align-items: center; gap: 7px;
+      color: var(--sky); font-size: 15px; font-weight: 800;
+      background: none; border: none; cursor: pointer;
+      padding: 0 0 18px; font-family: 'Nunito', sans-serif;
+    }
+    .back-btn:hover { color: var(--sky2); }
 
-.divider { border: none; border-top: 2px solid #e0f2fe; margin: 18px 0; }
+    .divider { border: none; border-top: 2px solid #e0f2fe; margin: 18px 0; }
 
-.goal-progress { display: flex; gap: 5px; margin-top: 10px; }
-.gp-step { flex: 1; height: 6px; border-radius: 99px; background: #e0f2fe; }
-.gp-step.done { background: var(--mint); }
-.gp-step.current { background: var(--sun); }
+    .goal-progress { display: flex; gap: 5px; margin-top: 10px; }
+    .gp-step { flex: 1; height: 6px; border-radius: 99px; background: #e0f2fe; }
+    .gp-step.done { background: var(--mint); }
+    .gp-step.current { background: var(--sun); }
 
-@media (max-width: 480px) {
-  .form-row { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: repeat(3, 1fr); }
-  .imp-btn { font-size: 12px; padding: 12px 5px; }
-}
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+      .imp-btn { font-size: 12px; padding: 12px 5px; }
+    }
 
-/* ── AI Alerts ── */
-.alerts-panel { margin-bottom: 14px; }
-.alert-card {
-  border-radius: 14px; padding: 14px 16px;
-  margin-bottom: 10px; display: flex; gap: 13px; align-items: flex-start;
-  border: 2px solid transparent; cursor: pointer; transition: box-shadow .18s;
-}
-.alert-card:hover { box-shadow: var(--shadow-lg); }
-.alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
-.alert-body { flex: 1; min-width: 0; }
-.alert-title { font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
-.alert-sub   { font-size: 12px; font-weight: 600; line-height: 1.4; opacity: .85; }
-.alert-action { font-size: 11px; font-weight: 800; margin-top: 5px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font-family: 'Nunito', sans-serif; }
-.alert-overdue  { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
-.alert-stuck    { background: #fef9c3; border-color: #fde047; color: #854d0e; }
-.alert-decline  { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
-.alert-lookfor  { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-.alert-schedule { background: #f0f9ff; border-color: #bae6fd; color: #0c4a6e; }
-.alert-flag     { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
-.alerts-empty { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 14px; padding: 16px 18px; display: flex; gap: 12px; align-items: center; border: 2px solid #bbf7d0; margin-bottom: 14px; }
-.alerts-empty .ae-icon { font-size: 28px; }
-.alerts-empty .ae-text { font-size: 14px; font-weight: 700; color: #166534; font-family: 'Nunito', sans-serif; }
-.alerts-empty .ae-sub  { font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 2px; }
-.alert-badge {
-  background: var(--coral); color: #fff;
-  font-size: 11px; font-weight: 900;
-  font-family: 'Nunito', sans-serif;
-  min-width: 20px; height: 20px; border-radius: 99px;
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 0 5px; margin-left: 6px; vertical-align: middle;
-}
+    /* ── AI Alerts ── */
+    .alerts-panel { margin-bottom: 14px; }
+    .alert-card {
+      border-radius: 14px; padding: 14px 16px;
+      margin-bottom: 10px; display: flex; gap: 13px; align-items: flex-start;
+      border: 2px solid transparent; cursor: pointer; transition: box-shadow .18s;
+    }
+    .alert-card:hover { box-shadow: var(--shadow-lg); }
+    .alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .alert-body { flex: 1; min-width: 0; }
+    .alert-title { font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+    .alert-sub   { font-size: 12px; font-weight: 600; line-height: 1.4; opacity: .85; }
+    .alert-action { font-size: 11px; font-weight: 800; margin-top: 5px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font-family: 'Nunito', sans-serif; }
+    .alert-overdue  { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .alert-stuck    { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+    .alert-decline  { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+    .alert-lookfor  { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .alert-schedule { background: #f0f9ff; border-color: #bae6fd; color: #0c4a6e; }
+    .alert-flag     { background: #faf5ff; border-color: #e9d5ff; color: #6b21a8; }
+    .alerts-empty { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 14px; padding: 16px 18px; display: flex; gap: 12px; align-items: center; border: 2px solid #bbf7d0; margin-bottom: 14px; }
+    .alerts-empty .ae-icon { font-size: 28px; }
+    .alerts-empty .ae-text { font-size: 14px; font-weight: 700; color: #166534; font-family: 'Nunito', sans-serif; }
+    .alerts-empty .ae-sub  { font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 2px; }
+    .alert-badge {
+      background: var(--coral); color: #fff;
+      font-size: 11px; font-weight: 900;
+      font-family: 'Nunito', sans-serif;
+      min-width: 20px; height: 20px; border-radius: 99px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 5px; margin-left: 6px; vertical-align: middle;
+    }
 
 
-/* ── Priority badges on teacher cards ── */
-.priority-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 900;
-  padding: 3px 9px; border-radius: 99px; margin-bottom: 8px;
-  text-transform: uppercase; letter-spacing: .4px;
-}
-.pb-urgent  { background: #fff1f2; color: #9f1239; border: 1.5px solid #fecdd3; }
-.pb-overdue { background: #fff7ed; color: #9a3412; border: 1.5px solid #fed7aa; }
-.pb-needs   { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
-.tc-urgent  { border-color: #fda4af !important; border-left: 4px solid #f43f5e !important; }
-.tc-overdue { border-color: #fdba74 !important; border-left: 4px solid #f97316 !important; }
-.tc-needs   { border-color: #fde047 !important; border-left: 4px solid #eab308 !important; }
-.closing-chip {
-  display: flex; align-items: center; gap: 12px;
-  background: #fff7ed; border: 2px solid #fed7aa;
-  border-radius: 14px; padding: 13px 16px; margin-bottom: 10px;
-  cursor: pointer; transition: all .2s;
-}
-.closing-chip:hover { border-color: #f97316; box-shadow: 0 4px 12px rgba(249,115,22,.15); }
-.closing-chip .cc-name { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; color: #9a3412; }
-.closing-chip .cc-meta { font-size: 12px; color: #c2410c; font-weight: 600; }
-.closing-chip .cc-time { font-size: 13px; color: #ea580c; font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
-```
+    /* ── Priority badges on teacher cards ── */
+    .priority-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 900;
+      padding: 3px 9px; border-radius: 99px; margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .pb-urgent  { background: #fff1f2; color: #9f1239; border: 1.5px solid #fecdd3; }
+    .pb-overdue { background: #fff7ed; color: #9a3412; border: 1.5px solid #fed7aa; }
+    .pb-needs   { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
+    .tc-urgent  { border-color: #fda4af !important; border-left: 4px solid #f43f5e !important; }
+    .tc-overdue { border-color: #fdba74 !important; border-left: 4px solid #f97316 !important; }
+    .tc-needs   { border-color: #fde047 !important; border-left: 4px solid #eab308 !important; }
+    .closing-chip {
+      display: flex; align-items: center; gap: 12px;
+      background: #fff7ed; border: 2px solid #fed7aa;
+      border-radius: 14px; padding: 13px 16px; margin-bottom: 10px;
+      cursor: pointer; transition: all .2s;
+    }
+    .closing-chip:hover { border-color: #f97316; box-shadow: 0 4px 12px rgba(249,115,22,.15); }
+    .closing-chip .cc-name { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; color: #9a3412; }
+    .closing-chip .cc-meta { font-size: 12px; color: #c2410c; font-weight: 600; }
+    .closing-chip .cc-time { font-size: 13px; color: #ea580c; font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
 
   </style>
 </head>
 <body>
 
 <!-- Header -->
-
 <div class="app-header">
   <div>
     <div class="app-header h1" style="font-size:17px;font-weight:700;letter-spacing:-.3px">📚 Micro Coaching</div>
@@ -541,15 +537,12 @@
 </div>
 
 <!-- Sync bar -->
-
 <div class="sync-bar" id="syncBar"></div>
 
 <!-- Main -->
-
 <div class="main" id="mainContent"></div>
 
 <!-- Bottom Nav -->
-
 <nav class="bottom-nav">
   <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
     <span class="icon">◎</span>Dashboard
@@ -569,7 +562,6 @@
 </nav>
 
 <!-- Modal -->
-
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal" id="modalContent">
     <div class="modal-handle"></div>
@@ -874,89 +866,123 @@ function configBanner() {
 // ── SCHEDULE ───────────────────────────────────────────
 function renderSchedule() {
   const now = new Date();
-  const todayVisits = state.visits.filter(v => v.visitDate === toDateStr(now)).sort((a,b) => a.visitTime > b.visitTime ? 1 : -1);
+  const todayStr = toDateStr(now);
+  const todayVisits = state.visits
+    .filter(v => v.visitDate === todayStr)
+    .sort((a,b) => a.visitTime > b.visitTime ? 1 : -1);
   const availNow = state.teachers.filter(isAvailableNow);
+  const closingSoon = state.teachers.filter(isWindowClosingSoon);
 
-  return `
-    <div class="section-title">Available Right Now — ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-    ${availNow.length === 0 ? `<div class="card"><div class="empty"><div class="e-icon">☕</div><p>No teachers available at this moment.</p></div></div>` :
-      `<div class="card">
-        ${availNow.map(t => {
-          const alreadyScheduled = todayVisits.find(v => v.teacherId == t.id && v.status !== 'cancelled');
-          return `<div class="avail-chip" onclick="openScheduleVisit('${t.id}')">
-            <div>
-              <div class="ac-name">${t.name}</div>
-              <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1} · Room ${t.room || '—'}</div>
-            </div>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-              ${alreadyScheduled ? `<span class="visit-status vs-planned">Scheduled</span>` : ''}
-              <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`
-    }
+  // Available now section
+  let availHTML = '';
+  if (availNow.length === 0) {
+    availHTML = '<div class="card"><div class="empty"><div class="e-icon">☕</div><p>No teachers available at this moment.</p></div></div>';
+  } else {
+    availHTML = '<div class="card">' + availNow.map(function(t) {
+      const alreadyScheduled = todayVisits.find(v => v.teacherId == t.id && v.status !== 'cancelled');
+      const { level } = getTeacherPriority(t);
+      const priorityColor = level === 'urgent' ? '#9f1239' : level === 'overdue' ? '#9a3412' : level === 'needs' ? '#854d0e' : '';
+      const priorityLabel = level === 'urgent' ? '🔴 Urgent' : level === 'overdue' ? '🟠 Overdue' : level === 'needs' ? '🟡 Needs attn' : '';
+      return '<div class="avail-chip" onclick="openScheduleVisit(\'' + t.id + '\')">'
+        + '<div>'
+        +   '<div class="ac-name">' + t.name + (priorityLabel ? ' <span style="font-size:11px;font-weight:800;color:' + priorityColor + '">' + priorityLabel + '</span>' : '') + '</div>'
+        +   '<div class="ac-meta">' + t.gradeBand + ' · Goal ' + (t.currentGoal || 1) + ' · Room ' + (t.room || '—') + '</div>'
+        + '</div>'
+        + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
+        +   (alreadyScheduled ? '<span class="visit-status vs-planned">Scheduled</span>' : '')
+        +   '<div class="ac-time">' + fmtTime(t.availabilityStart) + '–' + fmtTime(t.availabilityEnd) + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('') + '</div>';
+  }
 
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div class="section-title" style="margin-bottom:0">Today's Planned Visits</div>
-      <button class="btn btn-sm btn-primary" onclick="openPlanVisitModal()">+ Plan Visit</button>
-    </div>
-    <div style="height:10px"></div>
-    ${todayVisits.length === 0
-      ? `<div class="card"><div class="empty"><div class="e-icon">🗓</div><p>No visits planned for today.</p></div></div>`
-      : `<div class="card">
-          ${todayVisits.map(v => {
-            const statusClass = v.status === 'done' ? 'vs-done' : v.status === 'cancelled' ? 'vs-cancelled' : 'vs-planned';
-            return `<div class="visit-row">
-              <div class="vr-time">${fmtTime(v.visitTime)}</div>
-              <div>
-                <div class="vr-name">${v.teacherName}</div>
-                <div class="vr-coach">Coach ${v.coach}</div>
-                ${v.notes ? `<div class="vr-coach" style="margin-top:2px;font-style:italic">${v.notes}</div>` : ''}
-              </div>
-              <div class="vr-actions">
-                <span class="visit-status ${statusClass}">${v.status || 'planned'}</span>
-                <button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px" onclick="editVisit('${v.id}')">✏️</button>
-                ${v.status !== 'done' ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#dcfce7;color:#15803d" onclick="markVisitDone('${v.id}')">✓</button>` : ''}
-              </div>
-            </div>`;
-          }).join('')}
-        </div>`
-    }
-
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div class="section-title" style="margin-bottom:0">All Teachers — Availability</div>
-    </div>
-    <div style="height:10px"></div>
-    <div class="card">
-      ${state.teachers.length === 0 ? `<div class="empty"><p>Add teachers first.</p></div>` :
-        (() => {
-          const PRIORITY_ORDER = { urgent: 0, overdue: 1, needs: 2, null: 3 };
-          const sorted = [...state.teachers].sort((a, b) => {
-            const pa = getTeacherPriority(a).level;
-            const pb = getTeacherPriority(b).level;
-            return (PRIORITY_ORDER[pa] ?? 3) - (PRIORITY_ORDER[pb] ?? 3);
-          });
-          return sorted.map(t => {
-          const avail = isAvailableNow(t);
-          const closing = isWindowClosingSoon(t);
-          const { level } = getTeacherPriority(t);
-          const rowBg = level === 'urgent' ? 'background:#fff1f2;' : level === 'overdue' ? 'background:#fff7ed;' : level === 'needs' ? 'background:#fefce8;' : '';
-          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);${rowBg}" onclick="openScheduleVisit('${t.id}')">
-            <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}"></span>
-            <div style="flex:1">
-              <div style="font-size:14px;font-weight:700;font-family:Nunito,sans-serif">${t.name}${closing ? ' <span style="font-size:11px;color:#ea580c;font-weight:800">⚡ Closing soon</span>' : ''}</div>
-              <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · Room ${t.room || '—'}${level ? ' · <span style="font-weight:700;color:' + (level==='urgent'?'#9f1239':level==='overdue'?'#9a3412':'#854d0e') + '">'+(level==='urgent'?'🔴 Urgent':level==='overdue'?'🟠 Overdue':'🟡 Needs attn')+'</span>' : ''}</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-size:11px;font-family:'DM Mono';color:var(--${avail?'mint2':'muted'})">${t.availabilityStart && t.availabilityEnd ? fmtTime(t.availabilityStart)+'–'+fmtTime(t.availabilityEnd) : 'No window set'}</div>
-              <div style="font-size:10px;color:var(--muted)">${(t.availableDays||'').replace(/,/g,' ')}</div>
-            </div>
-          </div>`;
+  // Closing soon section
+  let closingHTML = '';
+  if (closingSoon.length > 0) {
+    closingHTML = '<div class="section-title">⚡ Window Closing Soon</div>'
+      + '<div class="card" style="border-color:#fed7aa">'
+      + closingSoon.map(function(t) {
+          const [eh, em] = t.availabilityEnd.split(':').map(Number);
+          const nowMins = now.getHours() * 60 + now.getMinutes();
+          const minsLeft = eh * 60 + em - nowMins;
+          return '<div class="closing-chip" onclick="quickObserve(\'' + t.id + '\')">'
+            + '<div>'
+            +   '<div class="cc-name">⚡ ' + t.name + '</div>'
+            +   '<div class="cc-meta">Available until ' + fmtTime(t.availabilityEnd) + ' · Not seen this week · Tap to observe now</div>'
+            + '</div>'
+            + '<div class="cc-time">' + minsLeft + ' min left</div>'
+            + '</div>';
         }).join('')
-      }
-    </div>
-  `;
+      + '</div>';
+  }
+
+  // Today's visits
+  let visitsHTML = '';
+  if (todayVisits.length === 0) {
+    visitsHTML = '<div class="card"><div class="empty"><div class="e-icon">🗓</div><p>No visits planned for today.</p></div></div>';
+  } else {
+    visitsHTML = '<div class="card">' + todayVisits.map(function(v) {
+      const sc = v.status === 'done' ? 'vs-done' : v.status === 'cancelled' ? 'vs-cancelled' : 'vs-planned';
+      return '<div class="visit-row">'
+        + '<div class="vr-time">' + fmtTime(v.visitTime) + '</div>'
+        + '<div>'
+        +   '<div class="vr-name">' + v.teacherName + '</div>'
+        +   '<div class="vr-coach">Coach ' + v.coach + '</div>'
+        +   (v.notes ? '<div class="vr-coach" style="margin-top:2px;font-style:italic">' + v.notes + '</div>' : '')
+        + '</div>'
+        + '<div class="vr-actions">'
+        +   '<span class="visit-status ' + sc + '">' + (v.status || 'planned') + '</span>'
+        +   '<button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px" onclick="editVisit(\'' + v.id + '\')">✏️</button>'
+        +   (v.status !== 'done' ? '<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#dcfce7;color:#15803d" onclick="markVisitDone(\'' + v.id + '\')">✓</button>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('') + '</div>';
+  }
+
+  // All teachers availability list — sorted by priority
+  const PRIORITY_ORDER = { urgent: 0, overdue: 1, needs: 2 };
+  const sortedAll = [...state.teachers].sort((a, b) => {
+    const pa = PRIORITY_ORDER[getTeacherPriority(a).level] ?? 99;
+    const pb = PRIORITY_ORDER[getTeacherPriority(b).level] ?? 99;
+    return pa - pb;
+  });
+
+  let allTeachersHTML = '';
+  if (state.teachers.length === 0) {
+    allTeachersHTML = '<div class="empty"><p>Add teachers first.</p></div>';
+  } else {
+    allTeachersHTML = sortedAll.map(function(t) {
+      const avail = isAvailableNow(t);
+      const closing = isWindowClosingSoon(t);
+      const { level } = getTeacherPriority(t);
+      const rowBg = level === 'urgent' ? 'background:#fff1f2;' : level === 'overdue' ? 'background:#fff7ed;' : level === 'needs' ? 'background:#fefce8;' : '';
+      const priorityLabel = level === 'urgent' ? ' · <b style="color:#9f1239">🔴 Urgent</b>' : level === 'overdue' ? ' · <b style="color:#9a3412">🟠 Overdue</b>' : level === 'needs' ? ' · <b style="color:#854d0e">🟡 Needs attn</b>' : '';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);' + rowBg + '" onclick="openScheduleVisit(\'' + t.id + '\')">'
+        + '<span class="avail-dot ' + (avail ? 'avail-now' : 'avail-no') + '"></span>'
+        + '<div style="flex:1">'
+        +   '<div style="font-size:14px;font-weight:700;font-family:Nunito,sans-serif">' + t.name + (closing ? ' <span style="font-size:11px;color:#ea580c;font-weight:800">⚡ Closing soon</span>' : '') + '</div>'
+        +   '<div style="font-size:11px;color:var(--muted)">' + t.gradeBand + ' · Room ' + (t.room || '—') + priorityLabel + '</div>'
+        + '</div>'
+        + '<div style="text-align:right">'
+        +   '<div style="font-size:12px;font-weight:700;color:var(--' + (avail ? 'mint2' : 'muted') + ')">' + (t.availabilityStart && t.availabilityEnd ? fmtTime(t.availabilityStart) + '–' + fmtTime(t.availabilityEnd) : 'No window set') + '</div>'
+        +   '<div style="font-size:10px;color:var(--muted)">' + (t.availableDays || '').replace(/,/g, ' ') + '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  return '<div class="section-title">Available Right Now — ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) + '</div>'
+    + availHTML
+    + closingHTML
+    + '<div style="display:flex;align-items:center;justify-content:space-between">'
+    +   "<div class=\"section-title\" style=\"margin-bottom:0\">Today's Planned Visits</div>"
+    +   '<button class="btn btn-sm btn-primary" onclick="openPlanVisitModal()">+ Plan Visit</button>'
+    + '</div>'
+    + '<div style="height:10px"></div>'
+    + visitsHTML
+    + '<div class="section-title">All Teachers — Availability</div>'
+    + '<div style="height:4px"></div>'
+    + '<div class="card">' + allTeachersHTML + '</div>';
 }
 
 // ── OBSERVE ────────────────────────────────────────────
@@ -1019,467 +1045,570 @@ function renderObserve() {
         <div class="form-group">
           <label class="form-label">🌟 Glow — what worked</label>
           <textarea class="form-input" rows="2" placeholder="What did you notice?" onchange="obsForm.glow=this.value">${obsForm.glow||''}</textarea>
+        </div>
 
-```
-    </div>
+        <div class="form-group">
+          <label class="form-label">🎯 Grow — tiny next step</label>
+          <textarea class="form-input" rows="2" placeholder="One small actionable thing to try" onchange="obsForm.grow=this.value">${obsForm.grow||''}</textarea>
+        </div>
 
-    <div class="form-group">
-      <label class="form-label">🎯 Grow — tiny next step</label>
-      <textarea class="form-input" rows="2" placeholder="One small actionable thing to try" onchange="obsForm.grow=this.value">${obsForm.grow||''}</textarea>
-    </div>
+        <div class="form-group">
+          <label class="form-label">Coach Notes (private)</label>
+          <textarea class="form-input" rows="2" placeholder="Internal notes for you & Rickett…" onchange="obsForm.coachNotes=this.value">${obsForm.coachNotes||''}</textarea>
+        </div>
 
-    <div class="form-group">
-      <label class="form-label">Coach Notes (private)</label>
-      <textarea class="form-input" rows="2" placeholder="Internal notes for you & Rickett…" onchange="obsForm.coachNotes=this.value">${obsForm.coachNotes||''}</textarea>
-    </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="followUp" ${obsForm.followUpNeeded?'checked':''} onchange="obsForm.followUpNeeded=this.checked">
+          <label for="followUp">🚨 Flag for immediate follow-up</label>
+        </div>
 
-    <div class="checkbox-row">
-      <input type="checkbox" id="followUp" ${obsForm.followUpNeeded?'checked':''} onchange="obsForm.followUpNeeded=this.checked">
-      <label for="followUp">🚨 Flag for immediate follow-up</label>
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button class="btn btn-primary btn-full" onclick="submitObservation()">Save & Preview Email</button>
+          ${goalNum < goals.length ? `<button class="btn btn-secondary" style="white-space:nowrap" onclick="advanceGoal()">Advance Goal →</button>` : ''}
+        </div>
+      ` : `
+        <div class="empty" style="padding:30px 0">
+          <div class="e-icon">👆</div>
+          <p>Select a teacher to start the observation form.</p>
+        </div>
+      `}
     </div>
-
-    <div style="display:flex;gap:10px;margin-top:6px">
-      <button class="btn btn-primary btn-full" onclick="submitObservation()">Save & Preview Email</button>
-      ${goalNum < goals.length ? `<button class="btn btn-secondary" style="white-space:nowrap" onclick="advanceGoal()">Advance Goal →</button>` : ''}
-    </div>
-  ` : `
-    <div class="empty" style="padding:30px 0">
-      <div class="e-icon">👆</div>
-      <p>Select a teacher to start the observation form.</p>
-    </div>
-  `}
-</div>
-```
-
-`;
+  `;
 }
 
 // ── TEACHERS ───────────────────────────────────────────
 function renderTeachers() {
-// Sort teachers by priority level: urgent → overdue → needs → clear
-const PRIORITY_ORDER = { urgent: 0, overdue: 1, needs: 2, null: 3 };
-const sorted = […state.teachers].sort((a, b) => {
-const pa = getTeacherPriority(a).level;
-const pb = getTeacherPriority(b).level;
-return (PRIORITY_ORDER[pa] ?? 3) - (PRIORITY_ORDER[pb] ?? 3);
-});
+  const PRIORITY_ORDER = { urgent: 0, overdue: 1, needs: 2 };
+  const badgeLabel = { urgent: '🔴 Urgent', overdue: '🟠 Overdue', needs: '🟡 Needs attention' };
+  const cardClass  = { urgent: 'tc-urgent', overdue: 'tc-overdue', needs: 'tc-needs' };
 
-const badgeLabel = { urgent: ‘🔴 Urgent’, overdue: ‘🟠 Overdue’, needs: ‘🟡 Needs attention’ };
-const cardClass  = { urgent: ‘tc-urgent’, overdue: ‘tc-overdue’, needs: ‘tc-needs’ };
+  const sorted = [...state.teachers].sort((a, b) => {
+    const pa = PRIORITY_ORDER[getTeacherPriority(a).level] ?? 99;
+    const pb = PRIORITY_ORDER[getTeacherPriority(b).level] ?? 99;
+    return pa - pb;
+  });
 
-return `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"> <button class="btn btn-primary btn-sm" onclick="openAddTeacher()">+ Add Teacher</button> </div> ${state.teachers.length === 0 ?`<div class="card"><div class="empty"><div class="e-icon">👥</div><p>No teachers yet. Add your first teacher to get started.</p></div></div>`:`<div class="teacher-grid">
-${sorted.map(t => {
-const tObs = state.observations.filter(o => o.teacherId == t.id);
-const last = tObs[tObs.length - 1];
-const avail = isAvailableNow(t);
-const closing = isWindowClosingSoon(t);
-const goals = GOALS[t.gradeBand] || [];
-const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
-const { level, reasons } = getTeacherPriority(t);
-const extraClass = level ? cardClass[level] : ‘’;
-return `<div class="teacher-card ${extraClass}" onclick="viewTeacher('${t.id}')"> <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"> <div class="tc-name">${t.name}</div> <div style="display:flex;align-items:center;gap:6px"> ${closing ? `<span style="font-size:11px;font-weight:800;color:#ea580c;font-family:Nunito,sans-serif">⚡ Closing</span>`: ''} <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" title="${avail ? 'Available now' : 'Not available'}"></span> </div> </div> ${level ?`<div class="priority-badge pb-${level}">${badgeLabel[level]}</div>`: ''} ${reasons.length ?`<div style="font-size:11px;color:var(--body);margin-bottom:8px;line-height:1.6">${reasons.join(’  ·  ‘)}</div>` : ''} <div class="tc-meta">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? \` · Room ${t.room}` : ‘’}</div>
-<div class="tc-goal">${goalObj ? goalObj.emoji : ‘’} Goal ${t.currentGoal || 1}: ${goalObj ? goalObj.name : ‘’}</div>
-<div class="goal-progress" style="margin-top:8px">
-${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join(’’)}
-</div>
-<div class="tc-stats">
-<span>${tObs.length} observations</span>
-<span>${last ? fmtDate(last.date) : ‘No visits yet’}</span>
-</div>
-</div>`; }).join('')} </div>`
-}
-`;
+  function teacherCard(t) {
+    const tObs = state.observations.filter(o => o.teacherId == t.id);
+    const last = tObs[tObs.length - 1];
+    const avail = isAvailableNow(t);
+    const closing = isWindowClosingSoon(t);
+    const goals = GOALS[t.gradeBand] || [];
+    const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+    const { level, reasons } = getTeacherPriority(t);
+    const extra = level ? cardClass[level] : '';
+    const stepsHTML = goals.map(g =>
+      '<div class="gp-step ' + (g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : '') + '"></div>'
+    ).join('');
+    return '<div class="teacher-card ' + extra + '" onclick="viewTeacher(\'' + t.id + '\')">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+      +   '<div class="tc-name">' + t.name + '</div>'
+      +   '<div style="display:flex;align-items:center;gap:6px">'
+      +     (closing ? '<span style="font-size:11px;font-weight:800;color:#ea580c;font-family:Nunito,sans-serif">⚡</span>' : '')
+      +     '<span class="avail-dot ' + (avail ? 'avail-now' : 'avail-no') + '"></span>'
+      +   '</div>'
+      + '</div>'
+      + (level ? '<div class="priority-badge pb-' + level + '">' + badgeLabel[level] + '</div>' : '')
+      + (reasons.length ? '<div style="font-size:11px;color:var(--body);margin-bottom:8px;line-height:1.6">' + reasons.join(' · ') + '</div>' : '')
+      + '<div class="tc-meta">' + t.gradeBand + ' · Coach ' + t.primaryCoach + (t.room ? ' · Room ' + t.room : '') + '</div>'
+      + '<div class="tc-goal">' + (goalObj ? goalObj.emoji : '') + ' Goal ' + (t.currentGoal || 1) + ': ' + (goalObj ? goalObj.name : '') + '</div>'
+      + '<div class="goal-progress" style="margin-top:8px">' + stepsHTML + '</div>'
+      + '<div class="tc-stats">'
+      +   '<span>' + tObs.length + ' observations</span>'
+      +   '<span>' + (last ? fmtDate(last.date) : 'No visits yet') + '</span>'
+      + '</div>'
+      + '</div>';
+  }
+
+  const cardsHTML = sorted.map(teacherCard).join('');
+
+  return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
+    + '<button class="btn btn-primary btn-sm" onclick="openAddTeacher()">+ Add Teacher</button>'
+    + '</div>'
+    + (state.teachers.length === 0
+      ? '<div class="card"><div class="empty"><div class="e-icon">👥</div><p>No teachers yet. Add your first teacher to get started.</p></div></div>'
+      : '<div class="teacher-grid">' + cardsHTML + '</div>');
 }
 
 // ── TEACHER DETAIL ─────────────────────────────────────
 function renderTeacherDetail(id) {
-const t = state.teachers.find(x => x.id == id);
-if (!t) { state.viewingTeacher = null; return renderTeachers(); }
-const tObs = state.observations.filter(o => o.teacherId == t.id).reverse();
-const goals = GOALS[t.gradeBand] || [];
-const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
-const avail = isAvailableNow(t);
+  const t = state.teachers.find(x => x.id == id);
+  if (!t) { state.viewingTeacher = null; return renderTeachers(); }
+  const tObs = state.observations.filter(o => o.teacherId == t.id).reverse();
+  const goals = GOALS[t.gradeBand] || [];
+  const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+  const avail = isAvailableNow(t);
 
-return `
-<button class="back-btn" onclick="state.viewingTeacher=null;render()">← All Teachers</button>
+  return `
+    <button class="back-btn" onclick="state.viewingTeacher=null;render()">← All Teachers</button>
 
-```
-<div class="card">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-    <div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:4px">${t.name}</div>
-      <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? ` · Room ${t.room}` : ''}</div>
-      ${t.email ? `<div style="font-size:12px;color:var(--teal);margin-top:4px">${t.email}</div>` : ''}
-    </div>
-    <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" style="width:12px;height:12px;flex-shrink:0;margin-top:4px"></span>
-  </div>
-
-  <hr class="divider">
-
-  <div class="goal-banner">
-    <div class="goal-num">${goalObj ? goalObj.emoji : ''} Current Goal ${t.currentGoal || 1}</div>
-    <div class="goal-name">${goalObj ? goalObj.name : ''}</div>
-    <div class="goal-progress">${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}</div>
-  </div>
-
-  <div style="display:flex;gap:8px">
-    <button class="btn btn-primary btn-sm" onclick="quickObserve('${t.id}')">✏️ Observe Now</button>
-    <button class="btn btn-secondary btn-sm" onclick="openEditTeacher('${t.id}')">Edit</button>
-    <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">Delete</button>
-    ${parseInt(t.currentGoal||1) < goals.length ? `<button class="btn btn-sm" style="background:#ede9fe;color:#4c1d95" onclick="advanceGoalFor('${t.id}')">Advance Goal →</button>` : ''}
-  </div>
-
-  <hr class="divider">
-
-  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Availability Window</div>
-  <div style="font-size:13px;color:var(--muted)">
-    ${t.availabilityStart && t.availabilityEnd
-      ? `${fmtTime(t.availabilityStart)} – ${fmtTime(t.availabilityEnd)} · ${(t.availableDays||'').replace(/,/g,' ')}`
-      : 'Not set — tap Edit to add availability window'
-    }
-  </div>
-</div>
-
-<div class="card-title" style="padding:0 4px 8px">Observation History (${tObs.length})</div>
-${tObs.length === 0
-  ? `<div class="card"><div class="empty"><p>No observations yet for ${t.name}.</p></div></div>`
-  : tObs.map(o => {
-      const g = (GOALS[t.gradeBand]||[]).find(x => x.id === parseInt(o.goalNumber));
-      return `<div class="obs-entry">
-        <div class="oe-header">
-          <div class="oe-date">${fmtDate(o.date)} · ${o.coach}</div>
-          <span class="oe-goal">${g ? g.emoji : ''} Goal ${o.goalNumber}</span>
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:4px">${t.name}</div>
+          <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? ` · Room ${t.room}` : ''}</div>
+          ${t.email ? `<div style="font-size:12px;color:var(--teal);margin-top:4px">${t.email}</div>` : ''}
         </div>
-        <div class="oe-glow">🌟 ${o.glow}</div>
-        <div class="oe-grow">🎯 ${o.grow}</div>
-        ${o.coachNotes ? `<div class="oe-note">📝 ${o.coachNotes}</div>` : ''}
-        ${o.followUpNeeded === true || o.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
-      </div>`;
-    }).join('')
-}
-```
+        <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" style="width:12px;height:12px;flex-shrink:0;margin-top:4px"></span>
+      </div>
 
-`;
+      <hr class="divider">
+
+      <div class="goal-banner">
+        <div class="goal-num">${goalObj ? goalObj.emoji : ''} Current Goal ${t.currentGoal || 1}</div>
+        <div class="goal-name">${goalObj ? goalObj.name : ''}</div>
+        <div class="goal-progress">${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}</div>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="quickObserve('${t.id}')">✏️ Observe Now</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditTeacher('${t.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">Delete</button>
+        ${parseInt(t.currentGoal||1) < goals.length ? `<button class="btn btn-sm" style="background:#ede9fe;color:#4c1d95" onclick="advanceGoalFor('${t.id}')">Advance Goal →</button>` : ''}
+      </div>
+
+      <hr class="divider">
+
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Availability Window</div>
+      <div style="font-size:13px;color:var(--muted)">
+        ${t.availabilityStart && t.availabilityEnd
+          ? `${fmtTime(t.availabilityStart)} – ${fmtTime(t.availabilityEnd)} · ${(t.availableDays||'').replace(/,/g,' ')}`
+          : 'Not set — tap Edit to add availability window'
+        }
+      </div>
+    </div>
+
+    <div class="card-title" style="padding:0 4px 8px">Observation History (${tObs.length})</div>
+    ${tObs.length === 0
+      ? `<div class="card"><div class="empty"><p>No observations yet for ${t.name}.</p></div></div>`
+      : tObs.map(o => {
+          const g = (GOALS[t.gradeBand]||[]).find(x => x.id === parseInt(o.goalNumber));
+          return `<div class="obs-entry">
+            <div class="oe-header">
+              <div class="oe-date">${fmtDate(o.date)} · ${o.coach}</div>
+              <span class="oe-goal">${g ? g.emoji : ''} Goal ${o.goalNumber}</span>
+            </div>
+            <div class="oe-glow">🌟 ${o.glow}</div>
+            <div class="oe-grow">🎯 ${o.grow}</div>
+            ${o.coachNotes ? `<div class="oe-note">📝 ${o.coachNotes}</div>` : ''}
+            ${o.followUpNeeded === true || o.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
+          </div>`;
+        }).join('')
+    }
+  `;
 }
 
 // ── ANALYTICS ──────────────────────────────────────────
 function renderAnalytics() {
-const total = state.observations.length;
-const goalCounts = {};
-state.observations.forEach(o => {
-const k = `Goal ${o.goalNumber}`;
-goalCounts[k] = (goalCounts[k] || 0) + 1;
-});
-const sorted = Object.entries(goalCounts).sort((a,b) => b[1]-a[1]);
-const maxCount = sorted[0] ? sorted[0][1] : 1;
+  const total = state.observations.length;
+  const goalCounts = {};
+  state.observations.forEach(o => {
+    const k = `Goal ${o.goalNumber}`;
+    goalCounts[k] = (goalCounts[k] || 0) + 1;
+  });
+  const sorted = Object.entries(goalCounts).sort((a,b) => b[1]-a[1]);
+  const maxCount = sorted[0] ? sorted[0][1] : 1;
 
-const noVisit14 = state.teachers.filter(t => {
-const tObs = state.observations.filter(o => o.teacherId == t.id);
-if (!tObs.length) return true;
-const last = tObs.sort((a,b) => new Date(b.date) - new Date(a.date))[0];
-return daysSince(last.date) > 14;
-});
+  const noVisit14 = state.teachers.filter(t => {
+    const tObs = state.observations.filter(o => o.teacherId == t.id);
+    if (!tObs.length) return true;
+    const last = tObs.sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+    return daysSince(last.date) > 14;
+  });
 
-const coachCounts = {};
-state.observations.forEach(o => { coachCounts[o.coach] = (coachCounts[o.coach]||0)+1; });
+  const coachCounts = {};
+  state.observations.forEach(o => { coachCounts[o.coach] = (coachCounts[o.coach]||0)+1; });
 
-const insight = total < 5
-? “Build your baseline — after 5+ observations you’ll see patterns.”
-: total < 10
-? `Good start! ${sorted[0] ? sorted[0][0]+' is your most common focus.' : ''} Keep observing to find broader patterns.`
-: `Strong dataset! ${sorted[0] ? sorted[0][0]+' dominates ('+sorted[0][1]+' visits).' : ''} ${noVisit14.length > 0 ? `${noVisit14.length} teacher${noVisit14.length>1?‘s’:’’} need attention.` : 'All teachers observed recently. 🎉'}`;
+  const insight = total < 5
+    ? "Build your baseline — after 5+ observations you'll see patterns."
+    : total < 10
+    ? `Good start! ${sorted[0] ? sorted[0][0]+' is your most common focus.' : ''} Keep observing to find broader patterns.`
+    : `Strong dataset! ${sorted[0] ? sorted[0][0]+' dominates ('+sorted[0][1]+' visits).' : ''} ${noVisit14.length > 0 ? `${noVisit14.length} teacher${noVisit14.length>1?'s':''} need attention.` : 'All teachers observed recently. 🎉'}`;
 
-return `
-<div class="stats-row">
-<div class="stat-chip chip-sky"><div class="val">${total}</div><div class="lbl">Total Obs</div></div>
-<div class="stat-chip chip-sun"><div class="val">${Object.keys(coachCounts).length ? Math.max(…Object.values(coachCounts)) : 0}</div><div class="lbl">Most by 1 Coach</div></div>
-<div class="stat-chip chip-coral"><div class="val">${noVisit14.length}</div><div class="lbl">Need Attn</div></div>
-</div>
+  return `
+    <div class="stats-row">
+      <div class="stat-chip chip-sky"><div class="val">${total}</div><div class="lbl">Total Obs</div></div>
+      <div class="stat-chip chip-sun"><div class="val">${Object.keys(coachCounts).length ? Math.max(...Object.values(coachCounts)) : 0}</div><div class="lbl">Most by 1 Coach</div></div>
+      <div class="stat-chip chip-coral"><div class="val">${noVisit14.length}</div><div class="lbl">Need Attn</div></div>
+    </div>
 
-```
-<div class="insight-card">
-  <div class="ic-label">✨ AI Insight</div>
-  <div class="ic-text">${insight}</div>
-</div>
+    <div class="insight-card">
+      <div class="ic-label">✨ AI Insight</div>
+      <div class="ic-text">${insight}</div>
+    </div>
 
-<div class="card">
-  <div class="card-title">Observations by Goal</div>
-  ${total < 3
-    ? `<div class="empty" style="padding:20px 0"><p>Observe more to see goal distribution.</p></div>`
-    : sorted.map(([goal, count]) => `
-      <div class="bar-row">
-        <div class="bar-label">${goal}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxCount*100)}%"></div></div>
-        <div class="bar-count">${count}</div>
-      </div>
-    `).join('')
-  }
-</div>
+    <div class="card">
+      <div class="card-title">Observations by Goal</div>
+      ${total < 3
+        ? `<div class="empty" style="padding:20px 0"><p>Observe more to see goal distribution.</p></div>`
+        : sorted.map(([goal, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${goal}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxCount*100)}%"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>
+        `).join('')
+      }
+    </div>
 
-<div class="card">
-  <div class="card-title">By Coach</div>
-  ${Object.entries(coachCounts).length === 0
-    ? `<div class="empty" style="padding:20px 0"><p>No data yet.</p></div>`
-    : Object.entries(coachCounts).map(([coach, count]) => `
-      <div class="bar-row">
-        <div class="bar-label">${coach}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/total*100)}%;background:var(--indigo)"></div></div>
-        <div class="bar-count">${count}</div>
-      </div>
-    `).join('')
-  }
-</div>
+    <div class="card">
+      <div class="card-title">By Coach</div>
+      ${Object.entries(coachCounts).length === 0
+        ? `<div class="empty" style="padding:20px 0"><p>No data yet.</p></div>`
+        : Object.entries(coachCounts).map(([coach, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${coach}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/total*100)}%;background:var(--indigo)"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>
+        `).join('')
+      }
+    </div>
 
-<div class="card">
-  <div class="card-title">⚠️ Need Attention (14+ days)</div>
-  ${noVisit14.length === 0
-    ? `<p style="font-size:13px;color:var(--muted)">All teachers observed within 2 weeks. 🎉</p>`
-    : noVisit14.map(t => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:13px;font-weight:600">${t.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · ${t.primaryCoach}</div>
-        </div>
-        <button class="btn btn-sm btn-primary" onclick="quickObserve('${t.id}')">Observe</button>
-      </div>
-    `).join('')
-  }
-</div>
-```
-
-`;
+    <div class="card">
+      <div class="card-title">⚠️ Need Attention (14+ days)</div>
+      ${noVisit14.length === 0
+        ? `<p style="font-size:13px;color:var(--muted)">All teachers observed within 2 weeks. 🎉</p>`
+        : noVisit14.map(t => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:13px;font-weight:600">${t.name}</div>
+              <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · ${t.primaryCoach}</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="quickObserve('${t.id}')">Observe</button>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
 }
 
 // ══════════════════════════════════════════════════════
 // MODALS
 // ══════════════════════════════════════════════════════
 function openModal(html) {
-document.getElementById(‘modalBody’).innerHTML = html;
-document.getElementById(‘modalOverlay’).classList.add(‘show’);
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
 }
 function closeModal(e) {
-if (e && e.target !== document.getElementById(‘modalOverlay’)) return;
-document.getElementById(‘modalOverlay’).classList.remove(‘show’);
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
 }
 function closeModalDirect() {
-document.getElementById(‘modalOverlay’).classList.remove(‘show’);
+  document.getElementById('modalOverlay').classList.remove('show');
 }
 
 // Add / Edit Teacher
 function openAddTeacher() {
-teacherForm = { availableDays: [‘Mon’,‘Tue’,‘Wed’,‘Thu’,‘Fri’] };
-openModal(teacherModalHTML(false));
+  teacherForm = { availableDays: ['Mon','Tue','Wed','Thu','Fri'] };
+  openModal(teacherModalHTML(false));
 }
 function openEditTeacher(id) {
-const t = state.teachers.find(x => x.id == id);
-teacherForm = { …t, availableDays: (t.availableDays||‘Mon,Tue,Wed,Thu,Fri’).split(’,’) };
-openModal(teacherModalHTML(true));
+  const t = state.teachers.find(x => x.id == id);
+  teacherForm = { ...t, availableDays: (t.availableDays||'Mon,Tue,Wed,Thu,Fri').split(',') };
+  openModal(teacherModalHTML(true));
 }
 function teacherModalHTML(isEdit) {
-const f = teacherForm;
-const daysAll = [‘Mon’,‘Tue’,‘Wed’,‘Thu’,‘Fri’,‘Sat’];
-return `<div class="modal-title">${isEdit ? 'Edit' : 'Add'} Teacher</div> <div class="form-row"> <div class="form-group"> <label class="form-label">Greeting *</label> <select class="form-input" id="tf-greeting"> <option value="Ms." ${f.greeting==='Ms.'?'selected':''}>Ms.</option> <option value="Mrs." ${f.greeting==='Mrs.'?'selected':''}>Mrs.</option> <option value="Mr." ${f.greeting==='Mr.'?'selected':''}>Mr.</option> <option value="Dr." ${f.greeting==='Dr.'?'selected':''}>Dr.</option> </select> </div> <div class="form-group"> <label class="form-label">Room</label> <input class="form-input" id="tf-room" value="${f.room||''}" placeholder="101"> </div> </div> <div class="form-group"> <label class="form-label">Full Name * <span style="font-weight:500;text-transform:none;letter-spacing:0">(first last)</span></label> <input class="form-input" id="tf-name" value="${f.name||''}" placeholder="Maria Perez"> </div> <div class="form-group"> <label class="form-label">Email</label> <input class="form-input" id="tf-email" value="${f.email||''}" placeholder="teacher@school.edu" type="email"> </div> <div class="form-row"> <div class="form-group"> <label class="form-label">Grade Band *</label> <select class="form-input" id="tf-band"> <option ${f.gradeBand==='K-2 UFLI'?'selected':''}>K-2 UFLI</option> <option ${f.gradeBand==='3-5 Writing'?'selected':''}>3-5 Writing</option> </select> </div> <div class="form-group"> <label class="form-label">Primary Coach</label> <select class="form-input" id="tf-coach"> <option ${f.primaryCoach==='Presley'?'selected':''}>Presley</option> <option ${f.primaryCoach==='Rickett'?'selected':''}>Rickett</option> </select> </div> </div> ${isEdit ?`
-<div class="form-group">
-<label class="form-label">Current Goal</label>
-<select class="form-input" id="tf-goal">
-${(GOALS[f.gradeBand]||GOALS[‘K-2 UFLI’]).map(g => `<option value="${g.id}" ${parseInt(f.currentGoal||1)===g.id?'selected':''}>${g.id}: ${g.name}</option>`).join(’’)}
-</select>
-</div>`: ''} <div class="form-group"> <label class="form-label">Available Days</label> <div class="days-row"> ${daysAll.map(d =>`<button type="button" class="day-toggle ${(f.availableDays||[]).includes(d)?'on':''}" onclick="toggleDay('${d}',this)">${d}</button>`).join('')} </div> </div> <div class="form-row"> <div class="form-group"> <label class="form-label">Available From</label> <input class="form-input" type="time" id="tf-start" value="${f.availabilityStart||''}"> </div> <div class="form-group"> <label class="form-label">Available Until</label> <input class="form-input" type="time" id="tf-end" value="${f.availabilityEnd||''}"> </div> </div> <button class="btn btn-primary btn-full" onclick="saveTeacher(${isEdit})"> ${isEdit ? 'Save Changes' : 'Add Teacher'} </button> `;
+  const f = teacherForm;
+  const daysAll = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  return `
+    <div class="modal-title">${isEdit ? 'Edit' : 'Add'} Teacher</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Greeting *</label>
+        <select class="form-input" id="tf-greeting">
+          <option value="Ms." ${f.greeting==='Ms.'?'selected':''}>Ms.</option>
+          <option value="Mrs." ${f.greeting==='Mrs.'?'selected':''}>Mrs.</option>
+          <option value="Mr." ${f.greeting==='Mr.'?'selected':''}>Mr.</option>
+          <option value="Dr." ${f.greeting==='Dr.'?'selected':''}>Dr.</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room</label>
+        <input class="form-input" id="tf-room" value="${f.room||''}" placeholder="101">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Full Name * <span style="font-weight:500;text-transform:none;letter-spacing:0">(first last)</span></label>
+      <input class="form-input" id="tf-name" value="${f.name||''}" placeholder="Maria Perez">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="tf-email" value="${f.email||''}" placeholder="teacher@school.edu" type="email">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Grade Band *</label>
+        <select class="form-input" id="tf-band">
+          <option ${f.gradeBand==='K-2 UFLI'?'selected':''}>K-2 UFLI</option>
+          <option ${f.gradeBand==='3-5 Writing'?'selected':''}>3-5 Writing</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Primary Coach</label>
+        <select class="form-input" id="tf-coach">
+          <option ${f.primaryCoach==='Presley'?'selected':''}>Presley</option>
+          <option ${f.primaryCoach==='Rickett'?'selected':''}>Rickett</option>
+        </select>
+      </div>
+    </div>
+    ${isEdit ? `
+    <div class="form-group">
+      <label class="form-label">Current Goal</label>
+      <select class="form-input" id="tf-goal">
+        ${(GOALS[f.gradeBand]||GOALS['K-2 UFLI']).map(g => `<option value="${g.id}" ${parseInt(f.currentGoal||1)===g.id?'selected':''}>${g.id}: ${g.name}</option>`).join('')}
+      </select>
+    </div>` : ''}
+    <div class="form-group">
+      <label class="form-label">Available Days</label>
+      <div class="days-row">
+        ${daysAll.map(d => `<button type="button" class="day-toggle ${(f.availableDays||[]).includes(d)?'on':''}" onclick="toggleDay('${d}',this)">${d}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Available From</label>
+        <input class="form-input" type="time" id="tf-start" value="${f.availabilityStart||''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Available Until</label>
+        <input class="form-input" type="time" id="tf-end" value="${f.availabilityEnd||''}">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveTeacher(${isEdit})">
+      ${isEdit ? 'Save Changes' : 'Add Teacher'}
+    </button>
+  `;
 }
 
 function toggleDay(day, el) {
-if (!teacherForm.availableDays) teacherForm.availableDays = [];
-const idx = teacherForm.availableDays.indexOf(day);
-if (idx > -1) { teacherForm.availableDays.splice(idx,1); el.classList.remove(‘on’); }
-else { teacherForm.availableDays.push(day); el.classList.add(‘on’); }
+  if (!teacherForm.availableDays) teacherForm.availableDays = [];
+  const idx = teacherForm.availableDays.indexOf(day);
+  if (idx > -1) { teacherForm.availableDays.splice(idx,1); el.classList.remove('on'); }
+  else { teacherForm.availableDays.push(day); el.classList.add('on'); }
 }
 
 async function saveTeacher(isEdit) {
-const name = document.getElementById(‘tf-name’).value.trim();
-if (!name) { alert(‘Name is required’); return; }
-const data = {
-id: isEdit ? teacherForm.id : Date.now().toString(),
-name,
-greeting: document.getElementById(‘tf-greeting’).value,
-room: document.getElementById(‘tf-room’).value.trim(),
-email: document.getElementById(‘tf-email’).value.trim(),
-gradeBand: document.getElementById(‘tf-band’).value,
-primaryCoach: document.getElementById(‘tf-coach’).value,
-currentGoal: isEdit ? parseInt(document.getElementById(‘tf-goal’).value) : 1,
-availabilityStart: document.getElementById(‘tf-start’).value,
-availabilityEnd: document.getElementById(‘tf-end’).value,
-availableDays: (teacherForm.availableDays||[]).join(’,’),
-status: ‘active’,
-createdAt: isEdit ? teacherForm.createdAt : new Date().toISOString()
-};
-if (isEdit) {
-const idx = state.teachers.findIndex(t => t.id == data.id);
-state.teachers[idx] = data;
-if (USE_SHEETS) { showSync(‘Saving…’); await apiPost(‘updateTeacher’, data); showSync(‘✓ Saved’); }
-} else {
-state.teachers.push(data);
-if (USE_SHEETS) { showSync(‘Saving…’); await apiPost(‘saveTeacher’, data); showSync(‘✓ Saved’); }
-}
-localSave();
-closeModalDirect();
-render();
+  const name = document.getElementById('tf-name').value.trim();
+  if (!name) { alert('Name is required'); return; }
+  const data = {
+    id: isEdit ? teacherForm.id : Date.now().toString(),
+    name,
+    greeting: document.getElementById('tf-greeting').value,
+    room: document.getElementById('tf-room').value.trim(),
+    email: document.getElementById('tf-email').value.trim(),
+    gradeBand: document.getElementById('tf-band').value,
+    primaryCoach: document.getElementById('tf-coach').value,
+    currentGoal: isEdit ? parseInt(document.getElementById('tf-goal').value) : 1,
+    availabilityStart: document.getElementById('tf-start').value,
+    availabilityEnd: document.getElementById('tf-end').value,
+    availableDays: (teacherForm.availableDays||[]).join(','),
+    status: 'active',
+    createdAt: isEdit ? teacherForm.createdAt : new Date().toISOString()
+  };
+  if (isEdit) {
+    const idx = state.teachers.findIndex(t => t.id == data.id);
+    state.teachers[idx] = data;
+    if (USE_SHEETS) { showSync('Saving…'); await apiPost('updateTeacher', data); showSync('✓ Saved'); }
+  } else {
+    state.teachers.push(data);
+    if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveTeacher', data); showSync('✓ Saved'); }
+  }
+  localSave();
+  closeModalDirect();
+  render();
 }
 
 // Plan Visit modal
 async function deleteTeacher(id) {
-const t = state.teachers.find(x => x.id == id);
-if (!t) return;
-if (!confirm(`Delete ${t.name}? This won't delete their observations, but they'll be removed from the teacher list.`)) return;
-state.teachers = state.teachers.filter(x => x.id != id);
-if (USE_SHEETS) {
-// Mark as deleted in sheet by updating status
-await apiPost(‘updateTeacher’, { …t, status: ‘deleted’ });
-showSync(‘✓ Teacher removed’);
-}
-localSave();
-state.viewingTeacher = null;
-render();
+  const t = state.teachers.find(x => x.id == id);
+  if (!t) return;
+  if (!confirm(`Delete ${t.name}? This won't delete their observations, but they'll be removed from the teacher list.`)) return;
+  state.teachers = state.teachers.filter(x => x.id != id);
+  if (USE_SHEETS) {
+    // Mark as deleted in sheet by updating status
+    await apiPost('updateTeacher', { ...t, status: 'deleted' });
+    showSync('✓ Teacher removed');
+  }
+  localSave();
+  state.viewingTeacher = null;
+  render();
 }
 
 function openPlanVisitModal() {
-visitForm = { visitDate: toDateStr(new Date()), coach: state.currentCoach, status: ‘planned’ };
-openModal(visitModalHTML());
+  visitForm = { visitDate: toDateStr(new Date()), coach: state.currentCoach, status: 'planned' };
+  openModal(visitModalHTML());
 }
 function openScheduleVisit(teacherId) {
-const t = state.teachers.find(x => x.id == teacherId);
-visitForm = {
-teacherId, teacherName: t?.name || ‘’,
-visitDate: toDateStr(new Date()),
-coach: state.currentCoach,
-status: ‘planned’
-};
-openModal(visitModalHTML());
+  const t = state.teachers.find(x => x.id == teacherId);
+  visitForm = {
+    teacherId, teacherName: t?.name || '',
+    visitDate: toDateStr(new Date()),
+    coach: state.currentCoach,
+    status: 'planned'
+  };
+  openModal(visitModalHTML());
 }
 function editVisit(id) {
-const v = state.visits.find(x => x.id == id);
-visitForm = { …v };
-openModal(visitModalHTML(true));
+  const v = state.visits.find(x => x.id == id);
+  visitForm = { ...v };
+  openModal(visitModalHTML(true));
 }
 function visitModalHTML(isEdit) {
-const f = visitForm;
-return `<div class="modal-title">${isEdit ? 'Edit Visit' : 'Plan a Visit'}</div> <div class="form-group"> <label class="form-label">Teacher *</label> <select class="form-input" id="vf-teacher" onchange="visitForm.teacherId=this.value;visitForm.teacherName=this.options[this.selectedIndex].text"> <option value="">Select…</option> ${state.teachers.map(t =>`<option value=”${t.id}” ${f.teacherId==t.id?‘selected’:’’}>${t.name}</option>`).join('')} </select> </div> <div class="form-row"> <div class="form-group"> <label class="form-label">Date *</label> <input class="form-input" type="date" id="vf-date" value="${f.visitDate||toDateStr(new Date())}"> </div> <div class="form-group"> <label class="form-label">Time</label> <input class="form-input" type="time" id="vf-time" value="${f.visitTime||''}"> </div> </div> <div class="form-group"> <label class="form-label">Coach</label> <select class="form-input" id="vf-coach"> <option ${f.coach==='Presley'?'selected':''}>Presley</option> <option ${f.coach==='Rickett'?'selected':''}>Rickett</option> </select> </div> <div class="form-group"> <label class="form-label">Notes</label> <input class="form-input" id="vf-notes" value="${f.notes||''}" placeholder="Optional notes…"> </div> ${isEdit ? `
-<div class="form-group">
-<label class="form-label">Status</label>
-<select class="form-input" id="vf-status">
-<option ${f.status===‘planned’?‘selected’:’’}>planned</option>
-<option ${f.status===‘done’?‘selected’:’’}>done</option>
-<option ${f.status===‘cancelled’?‘selected’:’’}>cancelled</option>
-</select>
-</div>` : ''} <div style="display:flex;gap:8px"> <button class="btn btn-primary btn-full" onclick="saveVisit(${isEdit?`’${f.id}’`:'null'})">${isEdit ? 'Save Changes' : 'Plan Visit'}</button> ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="deleteVisit('${f.id}')">Delete</button>`: ''} </div>`;
+  const f = visitForm;
+  return `
+    <div class="modal-title">${isEdit ? 'Edit Visit' : 'Plan a Visit'}</div>
+    <div class="form-group">
+      <label class="form-label">Teacher *</label>
+      <select class="form-input" id="vf-teacher" onchange="visitForm.teacherId=this.value;visitForm.teacherName=this.options[this.selectedIndex].text">
+        <option value="">Select…</option>
+        ${state.teachers.map(t => `<option value="${t.id}" ${f.teacherId==t.id?'selected':''}>${t.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input class="form-input" type="date" id="vf-date" value="${f.visitDate||toDateStr(new Date())}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" type="time" id="vf-time" value="${f.visitTime||''}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Coach</label>
+      <select class="form-input" id="vf-coach">
+        <option ${f.coach==='Presley'?'selected':''}>Presley</option>
+        <option ${f.coach==='Rickett'?'selected':''}>Rickett</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input class="form-input" id="vf-notes" value="${f.notes||''}" placeholder="Optional notes…">
+    </div>
+    ${isEdit ? `
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="vf-status">
+        <option ${f.status==='planned'?'selected':''}>planned</option>
+        <option ${f.status==='done'?'selected':''}>done</option>
+        <option ${f.status==='cancelled'?'selected':''}>cancelled</option>
+      </select>
+    </div>` : ''}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-full" onclick="saveVisit(${isEdit?`'${f.id}'`:'null'})">${isEdit ? 'Save Changes' : 'Plan Visit'}</button>
+      ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="deleteVisit('${f.id}')">Delete</button>` : ''}
+    </div>
+  `;
 }
 
 async function saveVisit(editId) {
-const teacherId = document.getElementById(‘vf-teacher’).value;
-const t = state.teachers.find(x => x.id == teacherId);
-if (!teacherId) { alert(‘Select a teacher’); return; }
-const data = {
-id: editId || Date.now().toString(),
-teacherId,
-teacherName: t?.name || ‘’,
-coach: document.getElementById(‘vf-coach’).value,
-visitDate: document.getElementById(‘vf-date’).value,
-visitTime: document.getElementById(‘vf-time’).value,
-notes: document.getElementById(‘vf-notes’).value,
-status: editId ? document.getElementById(‘vf-status’).value : ‘planned’,
-createdAt: editId ? visitForm.createdAt : new Date().toISOString()
-};
-if (editId) {
-const idx = state.visits.findIndex(v => v.id == editId);
-state.visits[idx] = data;
-if (USE_SHEETS) { await apiPost(‘updateVisit’, data); showSync(‘✓ Saved’); }
-} else {
-state.visits.push(data);
-if (USE_SHEETS) { await apiPost(‘saveVisit’, data); showSync(‘✓ Saved’); }
-}
-localSave();
-closeModalDirect();
-render();
+  const teacherId = document.getElementById('vf-teacher').value;
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!teacherId) { alert('Select a teacher'); return; }
+  const data = {
+    id: editId || Date.now().toString(),
+    teacherId,
+    teacherName: t?.name || '',
+    coach: document.getElementById('vf-coach').value,
+    visitDate: document.getElementById('vf-date').value,
+    visitTime: document.getElementById('vf-time').value,
+    notes: document.getElementById('vf-notes').value,
+    status: editId ? document.getElementById('vf-status').value : 'planned',
+    createdAt: editId ? visitForm.createdAt : new Date().toISOString()
+  };
+  if (editId) {
+    const idx = state.visits.findIndex(v => v.id == editId);
+    state.visits[idx] = data;
+    if (USE_SHEETS) { await apiPost('updateVisit', data); showSync('✓ Saved'); }
+  } else {
+    state.visits.push(data);
+    if (USE_SHEETS) { await apiPost('saveVisit', data); showSync('✓ Saved'); }
+  }
+  localSave();
+  closeModalDirect();
+  render();
 }
 
 async function deleteVisit(id) {
-if (!confirm(‘Delete this visit?’)) return;
-state.visits = state.visits.filter(v => v.id != id);
-if (USE_SHEETS) { await apiPost(‘deleteVisit’, null); showSync(‘✓ Deleted’); }
-localSave();
-closeModalDirect();
-render();
+  if (!confirm('Delete this visit?')) return;
+  state.visits = state.visits.filter(v => v.id != id);
+  if (USE_SHEETS) { await apiPost('deleteVisit', null); showSync('✓ Deleted'); }
+  localSave();
+  closeModalDirect();
+  render();
 }
 
 async function markVisitDone(id) {
-const v = state.visits.find(x => x.id == id);
-if (!v) return;
-v.status = ‘done’;
-if (USE_SHEETS) { await apiPost(‘updateVisit’, v); }
-localSave();
-render();
+  const v = state.visits.find(x => x.id == id);
+  if (!v) return;
+  v.status = 'done';
+  if (USE_SHEETS) { await apiPost('updateVisit', v); }
+  localSave();
+  render();
 }
 
 // ══════════════════════════════════════════════════════
 // OBSERVATION ACTIONS
 // ══════════════════════════════════════════════════════
 function selectObsTeacher(id) {
-state.selectedTeacherId = id;
-obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: ‘On track’ };
-render();
+  state.selectedTeacherId = id;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  render();
 }
 
 function setLookFor(idx, val) {
-if (!obsForm.lookFors) obsForm.lookFors = {};
-obsForm.lookFors[idx] = val;
-render();
+  if (!obsForm.lookFors) obsForm.lookFors = {};
+  obsForm.lookFors[idx] = val;
+  render();
 }
 
 function setImpression(val) {
-obsForm.impression = val;
-render();
+  obsForm.impression = val;
+  render();
 }
 
 function quickObserve(teacherId) {
-state.selectedTeacherId = teacherId;
-obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: ‘On track’ };
-switchTab(‘observe’);
+  state.selectedTeacherId = teacherId;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  switchTab('observe');
 }
 
 async function submitObservation() {
-const glow = document.getElementById(‘obsGlow’)?.value || obsForm.glow || ‘’;
-const grow = document.getElementById(‘obsGrow’)?.value || obsForm.grow || ‘’;
-if (!state.selectedTeacherId || !glow || !grow) {
-alert(‘Please fill in the teacher, glow, and grow fields.’); return;
-}
-const teacher = state.teachers.find(t => t.id == state.selectedTeacherId);
-const goals = GOALS[teacher.gradeBand] || [];
-const goalNum = parseInt(teacher.currentGoal || 1);
-const goal = goals.find(g => g.id === goalNum);
+  const glow = document.getElementById('obsGlow')?.value || obsForm.glow || '';
+  const grow = document.getElementById('obsGrow')?.value || obsForm.grow || '';
+  if (!state.selectedTeacherId || !glow || !grow) {
+    alert('Please fill in the teacher, glow, and grow fields.'); return;
+  }
+  const teacher = state.teachers.find(t => t.id == state.selectedTeacherId);
+  const goals = GOALS[teacher.gradeBand] || [];
+  const goalNum = parseInt(teacher.currentGoal || 1);
+  const goal = goals.find(g => g.id === goalNum);
 
-const obs = {
-id: Date.now().toString(),
-teacherId: teacher.id,
-teacherName: teacher.name,
-coach: state.currentCoach,
-date: document.getElementById(‘obsDate’)?.value || obsForm.date || toDateStr(new Date()),
-goalNumber: goalNum,
-lookForResponses: obsForm.lookFors || {},
-impression: obsForm.impression || ‘On track’,
-glow, grow,
-coachNotes: document.getElementById(‘obsCoachNotes’)?.value || obsForm.coachNotes || ‘’,
-followUpNeeded: document.getElementById(‘followUp’)?.checked || obsForm.followUpNeeded || false,
-createdAt: new Date().toISOString()
-};
+  const obs = {
+    id: Date.now().toString(),
+    teacherId: teacher.id,
+    teacherName: teacher.name,
+    coach: state.currentCoach,
+    date: document.getElementById('obsDate')?.value || obsForm.date || toDateStr(new Date()),
+    goalNumber: goalNum,
+    lookForResponses: obsForm.lookFors || {},
+    impression: obsForm.impression || 'On track',
+    glow, grow,
+    coachNotes: document.getElementById('obsCoachNotes')?.value || obsForm.coachNotes || '',
+    followUpNeeded: document.getElementById('followUp')?.checked || obsForm.followUpNeeded || false,
+    createdAt: new Date().toISOString()
+  };
 
-state.observations.push(obs);
-if (USE_SHEETS) { showSync(‘Saving…’); await apiPost(‘saveObservation’, obs); showSync(‘✓ Saved to Sheets’); }
-localSave();
+  state.observations.push(obs);
+  if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
+  localSave();
 
-// Email preview — greeting + last name, signed by coach
-const lastName = teacher.name.trim().split(’ ‘).pop();
-const greeting = teacher.greeting || ‘Ms.’;
-const formalName = greeting + ’ ’ + lastName;
-const emailPreview = `📧 EMAIL TO: ${teacher.name}${teacher.email ? ’ <’+teacher.email+’>’ : ‘’}
+  // Email preview — greeting + last name, signed by coach
+  const lastName = teacher.name.trim().split(' ').pop();
+  const greeting = teacher.greeting || 'Ms.';
+  const formalName = greeting + ' ' + lastName;
+  const emailPreview = `📧 EMAIL TO: ${teacher.name}${teacher.email ? ' <'+teacher.email+'>' : ''}
 From / CC: Coach ${state.currentCoach}
 
 Subject: Quick Visit — ${fmtDate(obs.date)}
@@ -1494,371 +1623,386 @@ ${glow}
 🎯 One tiny thing to try next time:
 ${grow}
 
-📍 You’re currently working on:
-${goal ? goal.emoji + ’ Goal ’ + goal.id + ’ — ’ + goal.name : ’Goal ’ + goalNum}
+📍 You're currently working on:
+${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalNum}
 
 Keep up the great work!
 
 — Coach ${state.currentCoach}`;
 
-alert(emailPreview);
+  alert(emailPreview);
 
-state.selectedTeacherId = null;
-obsForm = {};
-switchTab(‘dashboard’);
+  state.selectedTeacherId = null;
+  obsForm = {};
+  switchTab('dashboard');
 }
 
 async function advanceGoal() {
-if (!state.selectedTeacherId) return;
-advanceGoalFor(state.selectedTeacherId);
+  if (!state.selectedTeacherId) return;
+  advanceGoalFor(state.selectedTeacherId);
 }
 
 async function advanceGoalFor(teacherId) {
-const t = state.teachers.find(x => x.id == teacherId);
-if (!t) return;
-const goals = GOALS[t.gradeBand] || [];
-const next = parseInt(t.currentGoal || 1) + 1;
-if (next > goals.length) { alert(‘Teacher has completed all goals! You can add custom goals beyond Goal 6.’); return; }
-if (!confirm(`Advance ${t.name} to Goal ${next}?`)) return;
-t.currentGoal = next;
-if (USE_SHEETS) { await apiPost(‘updateTeacher’, t); showSync(‘✓ Goal advanced’); }
-localSave();
-render();
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  const goals = GOALS[t.gradeBand] || [];
+  const next = parseInt(t.currentGoal || 1) + 1;
+  if (next > goals.length) { alert('Teacher has completed all goals! You can add custom goals beyond Goal 6.'); return; }
+  if (!confirm(`Advance ${t.name} to Goal ${next}?`)) return;
+  t.currentGoal = next;
+  if (USE_SHEETS) { await apiPost('updateTeacher', t); showSync('✓ Goal advanced'); }
+  localSave();
+  render();
 }
 
 // ══════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════
 function switchTab(tab) {
-state.activeTab = tab;
-state.viewingTeacher = null;
-document.querySelectorAll(’.nav-btn’).forEach(b => b.classList.toggle(‘active’, b.dataset.tab === tab));
-render();
-updateNavBadge();
+  state.activeTab = tab;
+  state.viewingTeacher = null;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  render();
+  updateNavBadge();
 }
 
 function updateNavBadge() {
-const dashBtn = document.querySelector(’.nav-btn[data-tab=“dashboard”]’);
-if (!dashBtn) return;
-const existing = dashBtn.querySelector(’.nav-badge’);
-if (existing) existing.remove();
-if (state.teachers.length === 0) return;
-const count = computeAlerts().length;
-if (count > 0) {
-const badge = document.createElement(‘span’);
-badge.className = ‘nav-badge’;
-badge.textContent = count;
-badge.style.cssText = ‘position:absolute;top:6px;right:12px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;font-family:Nunito,sans-serif;min-width:16px;height:16px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;’;
-dashBtn.style.position = ‘relative’;
-dashBtn.appendChild(badge);
-}
+  const dashBtn = document.querySelector('.nav-btn[data-tab="dashboard"]');
+  if (!dashBtn) return;
+  const existing = dashBtn.querySelector('.nav-badge');
+  if (existing) existing.remove();
+  if (state.teachers.length === 0) return;
+  const count = computeAlerts().length;
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.textContent = count;
+    badge.style.cssText = 'position:absolute;top:6px;right:12px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;font-family:Nunito,sans-serif;min-width:16px;height:16px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;';
+    dashBtn.style.position = 'relative';
+    dashBtn.appendChild(badge);
+  }
 }
 
 function viewTeacher(id) {
-state.viewingTeacher = id;
-render();
+  state.viewingTeacher = id;
+  render();
 }
 
 function toDateStr(d) {
-return d.toISOString().split(‘T’)[0];
+  return d.toISOString().split('T')[0];
 }
 
 function fmtDate(str) {
-if (!str) return ‘’;
-const d = new Date(str + ‘T12:00:00’);
-return d.toLocaleDateString(‘en-US’, { month: ‘short’, day: ‘numeric’, year: ‘numeric’ });
+  if (!str) return '';
+  const d = new Date(str + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function daysSince(dateStr) {
-if (!dateStr) return 999;
-return (Date.now() - new Date(dateStr + ‘T12:00:00’).getTime()) / 86400000;
+  if (!dateStr) return 999;
+  return (Date.now() - new Date(dateStr + 'T12:00:00').getTime()) / 86400000;
 }
+
+
+
+// ── Impression scoring (used by priority + alerts) ───
+const IMPRESSION_SCORE = { 'Strong start': 3, 'On track': 2, 'Support needed': 1 };
 
 // ── Teacher priority scoring ──────────────────────────
 function getTeacherPriority(t) {
-// Returns { level: ‘urgent’|‘overdue’|‘needs’|null, reasons: [] }
-const tObs = state.observations
-.filter(o => o.teacherId == t.id)
-.sort((a, b) => new Date(a.date) - new Date(b.date));
-const lastObs = tObs[tObs.length - 1];
-const reasons = [];
-let level = null;
+  // Returns { level: 'urgent'|'overdue'|'needs'|null, reasons: [] }
+  const tObs = state.observations
+    .filter(o => o.teacherId == t.id)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const lastObs = tObs[tObs.length - 1];
+  const reasons = [];
+  let level = null;
 
-// Unresolved flag → urgent
-if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === ‘TRUE’)) {
-const visitsSince = tObs.filter(o => new Date(o.date) > new Date(lastObs.date)).length;
-if (visitsSince === 0) { level = ‘urgent’; reasons.push(‘🚨 Unresolved flag’); }
-}
+  // Unresolved flag → urgent
+  if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === 'TRUE')) {
+    const visitsSince = tObs.filter(o => new Date(o.date) > new Date(lastObs.date)).length;
+    if (visitsSince === 0) { level = 'urgent'; reasons.push('🚨 Unresolved flag'); }
+  }
 
-// Declining trend → urgent
-if (tObs.length >= 3) {
-const recent = tObs.slice(-3);
-let dec = true;
-for (let i = 1; i < recent.length; i++) {
-if ((IMPRESSION_SCORE[recent[i].impression]||2) >= (IMPRESSION_SCORE[recent[i-1].impression]||2)) { dec = false; break; }
-}
-if (dec) { level = level || ‘urgent’; reasons.push(‘📉 Declining trend’); }
-}
+  // Declining trend → urgent
+  if (tObs.length >= 3) {
+    const recent = tObs.slice(-3);
+    let dec = true;
+    for (let i = 1; i < recent.length; i++) {
+      if ((IMPRESSION_SCORE[recent[i].impression]||2) >= (IMPRESSION_SCORE[recent[i-1].impression]||2)) { dec = false; break; }
+    }
+    if (dec) { level = level || 'urgent'; reasons.push('📉 Declining trend'); }
+  }
 
-// Overdue → overdue
-const days = lastObs ? daysSince(lastObs.date) : 999;
-if (days >= 7) {
-level = level || ‘overdue’;
-reasons.push(`⏰ ${lastObs ? Math.floor(days)+'d since last visit' : 'Never visited'}`);
-}
+  // Overdue → overdue
+  const days = lastObs ? daysSince(lastObs.date) : 999;
+  if (days >= 7) {
+    level = level || 'overdue';
+    reasons.push(`⏰ ${lastObs ? Math.floor(days)+'d since last visit' : 'Never visited'}`);
+  }
 
-// Stuck on goal → needs
-if (tObs.length >= 3) {
-const currentGoal = parseInt(t.currentGoal || 1);
-const onGoal = tObs.filter(o => parseInt(o.goalNumber) === currentGoal).length;
-if (onGoal >= 3) { level = level || ‘needs’; reasons.push(`🔄 ${onGoal} obs on Goal ${currentGoal}`); }
-}
+  // Stuck on goal → needs
+  if (tObs.length >= 3) {
+    const currentGoal = parseInt(t.currentGoal || 1);
+    const onGoal = tObs.filter(o => parseInt(o.goalNumber) === currentGoal).length;
+    if (onGoal >= 3) { level = level || 'needs'; reasons.push(`🔄 ${onGoal} obs on Goal ${currentGoal}`); }
+  }
 
-// Repeated look-for No → needs
-if (tObs.length >= 2 && !reasons.find(r => r.startsWith(‘🔍’))) {
-const recentObs = tObs.slice(-4);
-const currentGoal = parseInt(t.currentGoal || 1);
-const goalObj = (GOALS[t.gradeBand]||[]).find(g => g.id === currentGoal);
-if (goalObj) {
-goalObj.lookFors.forEach((lf, idx) => {
-const resps = recentObs.map(o => {
-const r = o.lookForResponses;
-if (!r) return null;
-return typeof r === ‘string’ ? JSON.parse(r)[idx] : r[idx];
-}).filter(Boolean);
-if (resps.filter(r => r === ‘No’).length >= 2) {
-level = level || ‘needs’;
-reasons.push(`🔍 Gap: "${lf.length > 30 ? lf.slice(0,30)+'…' : lf}"`);
-}
-});
-}
-}
+  // Repeated look-for No → needs
+  if (tObs.length >= 2 && !reasons.find(r => r.startsWith('🔍'))) {
+    const recentObs = tObs.slice(-4);
+    const currentGoal = parseInt(t.currentGoal || 1);
+    const goalObj = (GOALS[t.gradeBand]||[]).find(g => g.id === currentGoal);
+    if (goalObj) {
+      goalObj.lookFors.forEach((lf, idx) => {
+        const resps = recentObs.map(o => {
+          const r = o.lookForResponses;
+          if (!r) return null;
+          return typeof r === 'string' ? JSON.parse(r)[idx] : r[idx];
+        }).filter(Boolean);
+        if (resps.filter(r => r === 'No').length >= 2) {
+          level = level || 'needs';
+          reasons.push(`🔍 Gap: "${lf.length > 30 ? lf.slice(0,30)+'…' : lf}"`);
+        }
+      });
+    }
+  }
 
-return { level, reasons };
+  return { level, reasons };
 }
 
 // ── Window closing soon (within 15 mins, not yet visited this week) ──────────
 function isWindowClosingSoon(t) {
-if (!t.availabilityEnd) return false;
-const now = new Date();
-const dayName = DAYS[now.getDay()];
-const days = (t.availableDays || ‘Mon,Tue,Wed,Thu,Fri’).split(’,’).map(d => d.trim());
-if (!days.includes(dayName)) return false;
-const nowMins = now.getHours() * 60 + now.getMinutes();
-const [eh, em] = t.availabilityEnd.split(’:’).map(Number);
-const endMins = eh * 60 + em;
-const minsLeft = endMins - nowMins;
-if (minsLeft < 0 || minsLeft > 15) return false;
-// Only warn if not seen this week
-const tObs = state.observations.filter(o => o.teacherId == t.id);
-const seenThisWeek = tObs.some(o => daysSince(o.date) <= 7);
-return !seenThisWeek;
+  if (!t.availabilityEnd) return false;
+  const now = new Date();
+  const dayName = DAYS[now.getDay()];
+  const days = (t.availableDays || 'Mon,Tue,Wed,Thu,Fri').split(',').map(d => d.trim());
+  if (!days.includes(dayName)) return false;
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const [eh, em] = t.availabilityEnd.split(':').map(Number);
+  const endMins = eh * 60 + em;
+  const minsLeft = endMins - nowMins;
+  if (minsLeft < 0 || minsLeft > 15) return false;
+  // Only warn if not seen this week
+  const tObs = state.observations.filter(o => o.teacherId == t.id);
+  const seenThisWeek = tObs.some(o => daysSince(o.date) <= 7);
+  return !seenThisWeek;
 }
 
 // ══════════════════════════════════════════════════════
 // AI INSIGHTS ENGINE
 // ══════════════════════════════════════════════════════
-const IMPRESSION_SCORE = { ‘Strong start’: 3, ‘On track’: 2, ‘Support needed’: 1 };
 const OVERDUE_DAYS   = 7;
 const STUCK_OBS      = 3;
 const DECLINE_STREAK = 2;
 
 function computeAlerts() {
-const alerts = [];
-const today = toDateStr(new Date());
+  const alerts = [];
+  const today = toDateStr(new Date());
 
-state.teachers.forEach(t => {
-const tObs = state.observations
-.filter(o => o.teacherId == t.id)
-.sort((a, b) => new Date(a.date) - new Date(b.date));
+  state.teachers.forEach(t => {
+    const tObs = state.observations
+      .filter(o => o.teacherId == t.id)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-```
-// ── 1. Overdue visit ──────────────────────────────
-const lastObs = tObs[tObs.length - 1];
-const days = lastObs ? daysSince(lastObs.date) : 999;
-if (days >= OVERDUE_DAYS) {
-  alerts.push({
-    type: 'overdue',
-    priority: days > 14 ? 0 : 1,
-    teacher: t,
-    title: `${t.name} — overdue visit`,
-    sub: lastObs
-      ? `Last seen ${Math.floor(days)} days ago (${fmtDate(lastObs.date)})`
-      : 'Never visited',
-    action: 'Tap to observe now',
-    onclick: `quickObserve('${t.id}')`
-  });
-}
+    // ── 1. Overdue visit ──────────────────────────────
+    const lastObs = tObs[tObs.length - 1];
+    const days = lastObs ? daysSince(lastObs.date) : 999;
+    if (days >= OVERDUE_DAYS) {
+      alerts.push({
+        type: 'overdue',
+        priority: days > 14 ? 0 : 1,
+        teacher: t,
+        title: `${t.name} — overdue visit`,
+        sub: lastObs
+          ? `Last seen ${Math.floor(days)} days ago (${fmtDate(lastObs.date)})`
+          : 'Never visited',
+        action: 'Tap to observe now',
+        onclick: `quickObserve('${t.id}')`
+      });
+    }
 
-// ── 2. Unresolved follow-up flag ──────────────────
-if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === 'TRUE')) {
-  const visitsSince = tObs.filter(o => new Date(o.date) > new Date(lastObs.date)).length;
-  if (visitsSince === 0) {
-    alerts.push({
-      type: 'flag',
-      priority: 0,
-      teacher: t,
-      title: `${t.name} — unresolved follow-up`,
-      sub: `Flagged on ${fmtDate(lastObs.date)} and not yet revisited`,
-      action: 'Tap to observe now',
-      onclick: `quickObserve('${t.id}')`
-    });
-  }
-}
-
-// ── 3. Stuck on same goal ─────────────────────────
-if (tObs.length >= STUCK_OBS) {
-  const currentGoal = parseInt(t.currentGoal || 1);
-  const obsOnCurrentGoal = tObs.filter(o => parseInt(o.goalNumber) === currentGoal);
-  if (obsOnCurrentGoal.length >= STUCK_OBS) {
-    const goals = GOALS[t.gradeBand] || [];
-    const goalObj = goals.find(g => g.id === currentGoal);
-    alerts.push({
-      type: 'stuck',
-      priority: 1,
-      teacher: t,
-      title: `${t.name} — stuck on Goal ${currentGoal}`,
-      sub: `${obsOnCurrentGoal.length} observations on "${goalObj ? goalObj.name : 'Goal '+currentGoal}" with no advancement. Consider modeling or co-teaching.`,
-      action: 'View teacher',
-      onclick: `viewTeacher('${t.id}')`
-    });
-  }
-}
-
-// ── 4. Declining impression trend ─────────────────
-if (tObs.length >= DECLINE_STREAK + 1) {
-  const recent = tObs.slice(-( DECLINE_STREAK + 1));
-  let declining = true;
-  for (let i = 1; i < recent.length; i++) {
-    const prev = IMPRESSION_SCORE[recent[i-1].impression] || 2;
-    const curr = IMPRESSION_SCORE[recent[i].impression] || 2;
-    if (curr >= prev) { declining = false; break; }
-  }
-  if (declining) {
-    const trend = recent.map(o => {
-      const s = IMPRESSION_SCORE[o.impression] || 2;
-      return s === 3 ? '💪' : s === 2 ? '✅' : '🆘';
-    }).join(' → ');
-    alerts.push({
-      type: 'decline',
-      priority: 0,
-      teacher: t,
-      title: `${t.name} — declining trend`,
-      sub: `Last ${recent.length} visits: ${trend}. May need extra support or goal adjustment.`,
-      action: 'View history',
-      onclick: `viewTeacher('${t.id}')`
-    });
-  }
-}
-
-// ── 5. Repeated "No" on same look-for ────────────
-if (tObs.length >= 2) {
-  const recentObs = tObs.slice(-4);
-  const goals = GOALS[t.gradeBand] || [];
-  const currentGoal = parseInt(t.currentGoal || 1);
-  const goalObj = goals.find(g => g.id === currentGoal);
-  if (goalObj) {
-    goalObj.lookFors.forEach((lf, idx) => {
-      const responses = recentObs
-        .map(o => {
-          const r = o.lookForResponses;
-          if (!r) return null;
-          return typeof r === 'string' ? JSON.parse(r)[idx] : r[idx];
-        })
-        .filter(Boolean);
-      const noCount = responses.filter(r => r === 'No').length;
-      if (noCount >= 2 && responses.length >= 2) {
+    // ── 2. Unresolved follow-up flag ──────────────────
+    if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === 'TRUE')) {
+      const visitsSince = tObs.filter(o => new Date(o.date) > new Date(lastObs.date)).length;
+      if (visitsSince === 0) {
         alerts.push({
-          type: 'lookfor',
-          priority: 2,
+          type: 'flag',
+          priority: 0,
           teacher: t,
-          title: `${t.name} — repeated gap`,
-          sub: `"${lf}" has been marked No ${noCount} time${noCount>1?'s':''} recently. This may be the micro-coaching focus.`,
+          title: `${t.name} — unresolved follow-up`,
+          sub: `Flagged on ${fmtDate(lastObs.date)} and not yet revisited`,
+          action: 'Tap to observe now',
+          onclick: `quickObserve('${t.id}')`
+        });
+      }
+    }
+
+    // ── 3. Stuck on same goal ─────────────────────────
+    if (tObs.length >= STUCK_OBS) {
+      const currentGoal = parseInt(t.currentGoal || 1);
+      const obsOnCurrentGoal = tObs.filter(o => parseInt(o.goalNumber) === currentGoal);
+      if (obsOnCurrentGoal.length >= STUCK_OBS) {
+        const goals = GOALS[t.gradeBand] || [];
+        const goalObj = goals.find(g => g.id === currentGoal);
+        alerts.push({
+          type: 'stuck',
+          priority: 1,
+          teacher: t,
+          title: `${t.name} — stuck on Goal ${currentGoal}`,
+          sub: `${obsOnCurrentGoal.length} observations on "${goalObj ? goalObj.name : 'Goal '+currentGoal}" with no advancement. Consider modeling or co-teaching.`,
           action: 'View teacher',
           onclick: `viewTeacher('${t.id}')`
         });
       }
+    }
+
+    // ── 4. Declining impression trend ─────────────────
+    if (tObs.length >= DECLINE_STREAK + 1) {
+      const recent = tObs.slice(-( DECLINE_STREAK + 1));
+      let declining = true;
+      for (let i = 1; i < recent.length; i++) {
+        const prev = IMPRESSION_SCORE[recent[i-1].impression] || 2;
+        const curr = IMPRESSION_SCORE[recent[i].impression] || 2;
+        if (curr >= prev) { declining = false; break; }
+      }
+      if (declining) {
+        const trend = recent.map(o => {
+          const s = IMPRESSION_SCORE[o.impression] || 2;
+          return s === 3 ? '💪' : s === 2 ? '✅' : '🆘';
+        }).join(' → ');
+        alerts.push({
+          type: 'decline',
+          priority: 0,
+          teacher: t,
+          title: `${t.name} — declining trend`,
+          sub: `Last ${recent.length} visits: ${trend}. May need extra support or goal adjustment.`,
+          action: 'View history',
+          onclick: `viewTeacher('${t.id}')`
+        });
+      }
+    }
+
+    // ── 5. Repeated "No" on same look-for ────────────
+    if (tObs.length >= 2) {
+      const recentObs = tObs.slice(-4);
+      const goals = GOALS[t.gradeBand] || [];
+      const currentGoal = parseInt(t.currentGoal || 1);
+      const goalObj = goals.find(g => g.id === currentGoal);
+      if (goalObj) {
+        goalObj.lookFors.forEach((lf, idx) => {
+          const responses = recentObs
+            .map(o => {
+              const r = o.lookForResponses;
+              if (!r) return null;
+              return typeof r === 'string' ? JSON.parse(r)[idx] : r[idx];
+            })
+            .filter(Boolean);
+          const noCount = responses.filter(r => r === 'No').length;
+          if (noCount >= 2 && responses.length >= 2) {
+            alerts.push({
+              type: 'lookfor',
+              priority: 2,
+              teacher: t,
+              title: `${t.name} — repeated gap`,
+              sub: `"${lf}" has been marked No ${noCount} time${noCount>1?'s':''} recently. This may be the micro-coaching focus.`,
+              action: 'View teacher',
+              onclick: `viewTeacher('${t.id}')`
+            });
+          }
+        });
+      }
+    }
+  });
+
+  // ── 5b. Window closing soon ──────────────────────
+  state.teachers.forEach(t => {
+    if (isWindowClosingSoon(t)) {
+      const [eh, em] = t.availabilityEnd.split(':').map(Number);
+      const endMins = eh * 60 + em;
+      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+      const minsLeft = endMins - nowMins;
+      alerts.push({
+        type: 'schedule',
+        priority: 0,
+        teacher: t,
+        title: `${t.name} — window closing in ${minsLeft} min`,
+        sub: `Available until ${fmtTime(t.availabilityEnd)} and hasn't been seen this week`,
+        action: 'Observe now',
+        onclick: `quickObserve('${t.id}')`
+      });
+    }
+  });
+
+  // ── 6. Available now but no visit planned today ───
+  const availNow = state.teachers.filter(isAvailableNow);
+  const todayVisits = state.visits.filter(v => v.visitDate === today && v.status !== 'cancelled');
+  const unplanned = availNow.filter(t =>
+    !todayVisits.find(v => v.teacherId == t.id)
+  );
+  if (unplanned.length > 0) {
+    alerts.push({
+      type: 'schedule',
+      priority: 2,
+      teacher: null,
+      title: `${unplanned.length} teacher${unplanned.length > 1 ? 's' : ''} available now — no visit planned`,
+      sub: unplanned.map(t => t.name).join(', '),
+      action: 'Go to Schedule',
+      onclick: `switchTab('schedule')`
     });
   }
-}
-```
 
-});
-
-// ── 5b. Window closing soon ──────────────────────
-state.teachers.forEach(t => {
-if (isWindowClosingSoon(t)) {
-const [eh, em] = t.availabilityEnd.split(’:’).map(Number);
-const endMins = eh * 60 + em;
-const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-const minsLeft = endMins - nowMins;
-alerts.push({
-type: ‘schedule’,
-priority: 0,
-teacher: t,
-title: `${t.name} — window closing in ${minsLeft} min`,
-sub: `Available until ${fmtTime(t.availabilityEnd)} and hasn't been seen this week`,
-action: ‘Observe now’,
-onclick: `quickObserve('${t.id}')`
-});
-}
-});
-
-// ── 6. Available now but no visit planned today ───
-const availNow = state.teachers.filter(isAvailableNow);
-const todayVisits = state.visits.filter(v => v.visitDate === today && v.status !== ‘cancelled’);
-const unplanned = availNow.filter(t =>
-!todayVisits.find(v => v.teacherId == t.id)
-);
-if (unplanned.length > 0) {
-alerts.push({
-type: ‘schedule’,
-priority: 2,
-teacher: null,
-title: `${unplanned.length} teacher${unplanned.length > 1 ? 's' : ''} available now — no visit planned`,
-sub: unplanned.map(t => t.name).join(’, ’),
-action: ‘Go to Schedule’,
-onclick: `switchTab('schedule')`
-});
-}
-
-// Sort: priority 0 (urgent) first
-alerts.sort((a, b) => a.priority - b.priority);
-return alerts;
+  // Sort: priority 0 (urgent) first
+  alerts.sort((a, b) => a.priority - b.priority);
+  return alerts;
 }
 
 function renderAlerts() {
-// Only show if there’s any data to work with
-if (state.teachers.length === 0) return ‘’;
+  // Only show if there's any data to work with
+  if (state.teachers.length === 0) return '';
 
-const alerts = computeAlerts();
+  const alerts = computeAlerts();
 
-if (alerts.length === 0) {
-return `<div class="alerts-empty"> <div class="ae-icon">🌟</div> <div> <div class="ae-text">All clear — great work!</div> <div class="ae-sub">No overdue visits, flags, or declining trends right now.</div> </div> </div>`;
-}
+  if (alerts.length === 0) {
+    return `<div class="alerts-empty">
+      <div class="ae-icon">🌟</div>
+      <div>
+        <div class="ae-text">All clear — great work!</div>
+        <div class="ae-sub">No overdue visits, flags, or declining trends right now.</div>
+      </div>
+    </div>`;
+  }
 
-const typeClass = { overdue:‘alert-overdue’, stuck:‘alert-stuck’, decline:‘alert-decline’, lookfor:‘alert-lookfor’, schedule:‘alert-schedule’, flag:‘alert-flag’ };
-const typeIcon  = { overdue:‘⏰’, stuck:‘🔄’, decline:‘📉’, lookfor:‘🔍’, schedule:‘🗓’, flag:‘🚨’ };
+  const typeClass = { overdue:'alert-overdue', stuck:'alert-stuck', decline:'alert-decline', lookfor:'alert-lookfor', schedule:'alert-schedule', flag:'alert-flag' };
+  const typeIcon  = { overdue:'⏰', stuck:'🔄', decline:'📉', lookfor:'🔍', schedule:'🗓', flag:'🚨' };
 
-return `<div class="card" style="padding:16px 18px"> <div class="card-title" style="margin-bottom:12px"> 🧠 AI Insights <span class="alert-badge">${alerts.length}</span> </div> ${alerts.map(a =>`
-<div class="alert-card ${typeClass[a.type]}" onclick="${a.onclick}">
-<div class="alert-icon">${typeIcon[a.type]}</div>
-<div class="alert-body">
-<div class="alert-title">${a.title}</div>
-<div class="alert-sub">${a.sub}</div>
-<div class="alert-action">${a.action} →</div>
-</div>
-</div>
-`).join('')} </div> `;
+  return `
+    <div class="card" style="padding:16px 18px">
+      <div class="card-title" style="margin-bottom:12px">
+        🧠 AI Insights
+        <span class="alert-badge">${alerts.length}</span>
+      </div>
+      ${alerts.map(a => `
+        <div class="alert-card ${typeClass[a.type]}" onclick="${a.onclick}">
+          <div class="alert-icon">${typeIcon[a.type]}</div>
+          <div class="alert-body">
+            <div class="alert-title">${a.title}</div>
+            <div class="alert-sub">${a.sub}</div>
+            <div class="alert-action">${a.action} →</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
-document.getElementById(‘coachSelect’).value = state.currentCoach;
-document.getElementById(‘coachSelect’).addEventListener(‘change’, e => {
-state.currentCoach = e.target.value;
-localStorage.setItem(‘currentCoach’, e.target.value);
+document.getElementById('coachSelect').value = state.currentCoach;
+document.getElementById('coachSelect').addEventListener('change', e => {
+  state.currentCoach = e.target.value;
+  localStorage.setItem('currentCoach', e.target.value);
 });
 
 localLoad();
@@ -1868,9 +2012,8 @@ syncFromSheets();
 
 // Auto-refresh every 3 minutes if using Sheets
 if (USE_SHEETS) {
-setInterval(syncFromSheets, 180000);
+  setInterval(syncFromSheets, 180000);
 }
 </script>
-
 </body>
 </html>
