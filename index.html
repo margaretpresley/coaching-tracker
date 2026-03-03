@@ -17,7 +17,7 @@
         let state = {
             teachers: [],
             observations: [],
-            currentCoach: 'Rickett',
+            currentCoach: 'Presley',
             activeTab: 'dashboard',
             showAddTeacher: false,
             selectedTeacher: null,
@@ -92,26 +92,26 @@
             ]
         };
 
-        // Data Persistence
-        async function loadData() {
+        // Data Persistence using localStorage
+        function loadData() {
             try {
-                const t = await window.storage.get('teachers');
-                const o = await window.storage.get('observations');
-                const c = await window.storage.get('currentCoach');
+                const t = localStorage.getItem('teachers');
+                const o = localStorage.getItem('observations');
+                const c = localStorage.getItem('currentCoach');
                 
-                if (t) state.teachers = JSON.parse(t.value);
-                if (o) state.observations = JSON.parse(o.value);
-                if (c) state.currentCoach = c.value;
+                if (t) state.teachers = JSON.parse(t);
+                if (o) state.observations = JSON.parse(o);
+                if (c) state.currentCoach = c;
             } catch (e) {
                 console.log('Starting fresh - no existing data');
             }
         }
 
-        async function saveData() {
+        function saveData() {
             try {
-                await window.storage.set('teachers', JSON.stringify(state.teachers));
-                await window.storage.set('observations', JSON.stringify(state.observations));
-                await window.storage.set('currentCoach', state.currentCoach);
+                localStorage.setItem('teachers', JSON.stringify(state.teachers));
+                localStorage.setItem('observations', JSON.stringify(state.observations));
+                localStorage.setItem('currentCoach', state.currentCoach);
             } catch (e) {
                 console.error('Error saving:', e);
                 alert('Unable to save data. Please try again.');
@@ -140,8 +140,8 @@
                         <div>
                             <label class="text-sm text-gray-600 block mb-1">Coach:</label>
                             <select id="coachSelect" class="px-4 py-2 border-2 border-indigo-200 rounded-lg font-semibold focus:outline-none focus:border-indigo-500">
-                                <option ${state.currentCoach === 'Rickett' ? 'selected' : ''}>Rickett</option>
                                 <option ${state.currentCoach === 'Presley' ? 'selected' : ''}>Presley</option>
+                                <option ${state.currentCoach === 'Rickett' ? 'selected' : ''}>Rickett</option>
                             </select>
                         </div>
                     </div>
@@ -267,8 +267,8 @@
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Primary Coach</label>
                                 <select id="teacherCoach" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
-                                    <option>Rickett</option>
                                     <option>Presley</option>
+                                    <option>Rickett</option>
                                 </select>
                             </div>
                             <div class="flex gap-3">
@@ -467,7 +467,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Notes (private, for you and your co-coach)</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Notes (private, for you and Rickett)</label>
                                 <textarea id="obsNotes" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="Internal notes, patterns, follow-up reminders..."></textarea>
                             </div>
 
@@ -604,7 +604,7 @@
             // Add teacher form
             const addTeacherForm = document.getElementById('addTeacherForm');
             if (addTeacherForm) {
-                addTeacherForm.addEventListener('submit', async (e) => {
+                addTeacherForm.addEventListener('submit', (e) => {
                     e.preventDefault();
                     const teacher = {
                         id: Date.now().toString(),
@@ -617,7 +617,7 @@
                     };
                     state.teachers.push(teacher);
                     state.showAddTeacher = false;
-                    await saveData();
+                    saveData();
                     render();
                 });
             }
@@ -667,7 +667,7 @@
             // Observation form submission
             const obsForm = document.getElementById('observationForm');
             if (obsForm) {
-                obsForm.addEventListener('submit', async (e) => {
+                obsForm.addEventListener('submit', (e) => {
                     e.preventDefault();
                     
                     const teacherId = document.getElementById('obsTeacher').value;
@@ -699,6 +699,7 @@
                     };
                     
                     state.observations.push(observation);
+                    saveData();
                     
                     // Generate email preview
                     const goals = GOALS[teacher.gradeBand];
@@ -716,7 +717,6 @@
                     alert(emailText);
                     
                     state.selectedTeacher = null;
-                    await saveData();
                     state.activeTab = 'dashboard';
                     render();
                 });
@@ -741,8 +741,8 @@
         }
 
         // Initialize app
-        async function init() {
-            await loadData();
+        function init() {
+            loadData();
             render();
         }
 
