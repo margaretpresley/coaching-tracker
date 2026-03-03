@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instructional Coaching Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-purple-700 min-h-screen">
+    <div id="app" class="p-4 max-w-7xl mx-auto"></div>
+
+    <script>
+        // State Management
+        let state = {
+            teachers: [],
+            observations: [],
+            currentCoach: 'Rickett',
+            activeTab: 'dashboard',
+            showAddTeacher: false,
+            selectedTeacher: null,
+            viewingTeacher: null
+        };
+
+        // Goal Definitions from PDF
+        const GOALS = {
+            'K-2 UFLI': [
+                { id: 1, emoji: '🔵', name: 'Consistent UFLI Routine', lookFors: [
+                    'Lesson follows UFLI sequence',
+                    'Materials ready; transitions tight',
+                    'Students respond chorally',
+                    'Teacher monitors individual accuracy'
+                ]},
+                { id: 2, emoji: '🟢', name: 'Sound Accuracy (Not Speed)', lookFors: [
+                    'Teacher models clean sounds',
+                    'Immediate error correction',
+                    'Accuracy prioritized over pace'
+                ]},
+                { id: 3, emoji: '🟩', name: 'Daily Encoding', lookFors: [
+                    'Encoding included today',
+                    'Oral segmentation before writing',
+                    'Task length appropriate'
+                ]},
+                { id: 4, emoji: '🟡', name: 'Reduce Overload, Protect Thinking', lookFors: [
+                    'Oral rehearsal before writing',
+                    'Sentence stems / word banks used',
+                    'Copying minimized when needed'
+                ]},
+                { id: 5, emoji: '🟣', name: 'Independence Routines', lookFors: [
+                    '"When I\'m stuck…" strategies visible',
+                    'Students attempt strategy first'
+                ]},
+                { id: 6, emoji: '🟠', name: 'Transfer to Connected Text', lookFors: [
+                    'Decodable text used',
+                    'Students read aloud',
+                    'Accuracy + meaning checked'
+                ]}
+            ],
+            '3-5 Writing': [
+                { id: 1, emoji: '🔵', name: 'Daily Routine Happens', lookFors: [
+                    'Grade-level text used during instruction',
+                    'Students complete a short written response',
+                    'Writing is tied directly to the text'
+                ]},
+                { id: 2, emoji: '🟢', name: 'Understand Before Writing', lookFors: [
+                    'Turn-and-talk or oral rehearsal occurs',
+                    'Teacher prompts understanding',
+                    'Students can say an idea before writing'
+                ]},
+                { id: 3, emoji: '🟩', name: 'Find Evidence', lookFors: [
+                    'Students underline, box, or point to evidence',
+                    'Teacher asks "Where did you find that?"',
+                    'Evidence is identified before writing'
+                ]},
+                { id: 4, emoji: '🟡', name: 'Write WITH Evidence', lookFors: [
+                    'Sentence frames or models used as needed',
+                    'Writing includes quotes, paraphrases, or references',
+                    'Response connects claim → evidence'
+                ]},
+                { id: 5, emoji: '🟣', name: 'Clarity & Complete Thoughts', lookFors: [
+                    'Responses are in complete sentences',
+                    'Capitals/punctuation added after ideas',
+                    'Teacher checks for clarity'
+                ]},
+                { id: 6, emoji: '🟠', name: 'Extend Thinking', lookFors: [
+                    'Students explain why evidence matters',
+                    'Students compare ideas or add one meaningful detail',
+                    'Extension is focused, not filler'
+                ]}
+            ]
+        };
+
+        // Data Persistence
+        async function loadData() {
+            try {
+                const t = await window.storage.get('teachers');
+                const o = await window.storage.get('observations');
+                const c = await window.storage.get('currentCoach');
+                
+                if (t) state.teachers = JSON.parse(t.value);
+                if (o) state.observations = JSON.parse(o.value);
+                if (c) state.currentCoach = c.value;
+            } catch (e) {
+                console.log('Starting fresh - no existing data');
+            }
+        }
+
+        async function saveData() {
+            try {
+                await window.storage.set('teachers', JSON.stringify(state.teachers));
+                await window.storage.set('observations', JSON.stringify(state.observations));
+                await window.storage.set('currentCoach', state.currentCoach);
+            } catch (e) {
+                console.error('Error saving:', e);
+                alert('Unable to save data. Please try again.');
+            }
+        }
+
+        // Render Main App
+        function render() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                ${renderHeader()}
+                ${renderNav()}
+                ${renderContent()}
+            `;
+            attachEventListeners();
+        }
+
+        function renderHeader() {
+            return `
+                <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold text-indigo-600 mb-2">📚 Instructional Coaching Tracker</h1>
+                            <p class="text-gray-600">Micro-coaching for literacy growth</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 block mb-1">Coach:</label>
+                            <select id="coachSelect" class="px-4 py-2 border-2 border-indigo-200 rounded-lg font-semibold focus:outline-none focus:border-indigo-500">
+                                <option ${state.currentCoach === 'Rickett' ? 'selected' : ''}>Rickett</option>
+                                <option ${state.currentCoach === 'Presley' ? 'selected' : ''}>Presley</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNav() {
+            const tabs = [
+                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+                { id: 'teachers', label: 'Teachers', icon: '👥' },
+                { id: 'observe', label: 'New Observation', icon: '✓' },
+                { id: 'analytics', label: 'Analytics', icon: '📈' }
+            ];
+
+            return `
+                <div class="bg-white rounded-xl shadow-lg p-2 mb-6 flex gap-2 overflow-x-auto">
+                    ${tabs.map(tab => `
+                        <button data-tab="${tab.id}" class="tab-btn flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                            state.activeTab === tab.id 
+                                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' 
+                                : 'text-gray-600 hover:bg-gray-100'
+                        }">
+                            <span>${tab.icon}</span>
+                            <span>${tab.label}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderContent() {
+            if (state.viewingTeacher) return renderTeacherDetail();
+            
+            switch(state.activeTab) {
+                case 'dashboard': return renderDashboard();
+                case 'teachers': return renderTeachers();
+                case 'observe': return renderObserveForm();
+                case 'analytics': return renderAnalytics();
+                default: return renderDashboard();
+            }
+        }
+
+        function renderDashboard() {
+            const thisWeek = state.observations.filter(o => {
+                const days = (Date.now() - new Date(o.date).getTime()) / 86400000;
+                return days <= 7;
+            }).length;
+
+            const needsFollowUp = state.observations.filter(o => o.followUpNeeded).length;
+
+            return `
+                <div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+                            <div class="text-4xl font-bold mb-2">${state.teachers.length}</div>
+                            <div class="text-sm opacity-90">Active Teachers</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
+                            <div class="text-4xl font-bold mb-2">${thisWeek}</div>
+                            <div class="text-sm opacity-90">Observations This Week</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
+                            <div class="text-4xl font-bold mb-2">${needsFollowUp}</div>
+                            <div class="text-sm opacity-90">Need Follow-Up</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                        ${state.observations.length === 0 ? `
+                            <div class="text-center py-12 text-gray-500">
+                                <div class="text-6xl mb-4">📅</div>
+                                <p>No observations yet. Add teachers and start coaching!</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-3">
+                                ${state.observations.slice(-5).reverse().map(obs => {
+                                    const teacher = state.teachers.find(t => t.id === obs.teacherId);
+                                    return `
+                                        <div class="border-l-4 border-indigo-500 bg-gray-50 rounded-lg p-4">
+                                            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                                                <div class="font-semibold text-gray-800">
+                                                    ${teacher?.name || 'Unknown'} • Goal ${obs.goalNumber}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    ${new Date(obs.date).toLocaleDateString()} • ${obs.coach}
+                                                </div>
+                                            </div>
+                                            <div class="text-sm text-gray-600"><strong>Impression:</strong> ${obs.impression}</div>
+                                            ${obs.followUpNeeded ? `
+                                                <div class="mt-2 inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                                                    ⚠️ Follow-up needed
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeachers() {
+            if (state.showAddTeacher) {
+                return `
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Add Teacher</h3>
+                        <form id="addTeacherForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher Name *</label>
+                                <input type="text" id="teacherName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" placeholder="e.g., Ms. Walker">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Grade Band *</label>
+                                <select id="teacherGradeBand" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
+                                    <option value="K-2 UFLI">K-2 UFLI</option>
+                                    <option value="3-5 Writing">3-5 Writing</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Primary Coach</label>
+                                <select id="teacherCoach" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
+                                    <option>Rickett</option>
+                                    <option>Presley</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3">
+                                <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all">
+                                    Add Teacher
+                                </button>
+                                <button type="button" id="cancelAddTeacher" class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+            }
+
+            if (state.teachers.length === 0) {
+                return `
+                    <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
+                        <div class="text-6xl mb-4">👥</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">No Teachers Yet</h3>
+                        <p class="text-gray-600 mb-6">Add your first teacher to get started</p>
+                        <button id="showAddTeacher" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
+                            + Add Teacher
+                        </button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div>
+                    <div class="mb-6">
+                        <button id="showAddTeacher" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                            <span>+</span> Add Teacher
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${state.teachers.map(teacher => {
+                            const obs = state.observations.filter(o => o.teacherId === teacher.id);
+                            const lastObs = obs[obs.length - 1];
+                            return `
+                                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer teacher-card" data-teacher-id="${teacher.id}">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h3 class="text-xl font-bold text-gray-800">${teacher.name}</h3>
+                                        <span class="text-2xl">Goal ${teacher.currentGoal || 1}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-3">
+                                        <div>${teacher.gradeBand}</div>
+                                        <div>Coach: ${teacher.primaryCoach}</div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-500">${obs.length} observations</span>
+                                        ${lastObs ? `<span class="text-gray-500">Last: ${new Date(lastObs.date).toLocaleDateString()}</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeacherDetail() {
+            const teacher = state.teachers.find(t => t.id === state.viewingTeacher);
+            if (!teacher) {
+                state.viewingTeacher = null;
+                return renderTeachers();
+            }
+
+            const obs = state.observations.filter(o => o.teacherId === teacher.id).reverse();
+            const goals = GOALS[teacher.gradeBand];
+
+            return `
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <button id="backToTeachers" class="mb-4 text-indigo-600 font-semibold hover:underline">
+                        ← Back to All Teachers
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">${teacher.name}</h2>
+                    <div class="mb-6 text-gray-600 space-y-1">
+                        <div><strong>Grade Band:</strong> ${teacher.gradeBand}</div>
+                        <div><strong>Primary Coach:</strong> ${teacher.primaryCoach}</div>
+                        <div><strong>Current Goal:</strong> ${teacher.currentGoal || 1}</div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">Observation History</h3>
+                    ${obs.length === 0 ? `
+                        <p class="text-gray-500">No observations yet</p>
+                    ` : `
+                        <div class="space-y-3">
+                            ${obs.map(o => {
+                                const goal = goals.find(g => g.id === o.goalNumber);
+                                return `
+                                    <div class="bg-gray-50 border-l-4 border-indigo-500 rounded-lg p-4">
+                                        <div class="text-indigo-600 font-semibold text-sm mb-2">
+                                            ${new Date(o.date).toLocaleDateString()} • ${goal?.emoji} Goal ${o.goalNumber} • ${o.coach}
+                                        </div>
+                                        <div class="text-sm text-gray-600 mb-2">
+                                            <strong>Impression:</strong> ${o.impression}
+                                        </div>
+                                        <div class="text-sm text-gray-700 mt-2">
+                                            <strong>🌟 Glow:</strong> ${o.glow}
+                                        </div>
+                                        <div class="text-sm text-gray-700 mt-1">
+                                            <strong>🎯 Grow:</strong> ${o.grow}
+                                        </div>
+                                        ${o.coachNotes ? `
+                                            <div class="text-sm text-gray-500 italic mt-2">
+                                                <strong>Coach notes:</strong> ${o.coachNotes}
+                                            </div>
+                                        ` : ''}
+                                        ${o.followUpNeeded ? `
+                                            <div class="mt-2 inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
+                                                ⚠️ Follow-up needed
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderObserveForm() {
+            const selectedTeacher = state.selectedTeacher ? state.teachers.find(t => t.id === state.selectedTeacher) : null;
+            const goals = selectedTeacher ? GOALS[selectedTeacher.gradeBand] : [];
+            const currentGoalNum = selectedTeacher?.currentGoal || 1;
+            const currentGoal = goals.find(g => g.id === currentGoalNum);
+
+            return `
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">New Observation</h2>
+                    <form id="observationForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher *</label>
+                                <select id="obsTeacher" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
+                                    <option value="">Select teacher...</option>
+                                    ${state.teachers.map(t => `
+                                        <option value="${t.id}" ${state.selectedTeacher === t.id ? 'selected' : ''}>
+                                            ${t.name} (${t.gradeBand})
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+                                <input type="date" id="obsDate" required value="${new Date().toISOString().split('T')[0]}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        ${selectedTeacher && currentGoal ? `
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-gray-800 mb-3">
+                                    ${currentGoal.emoji} Goal ${currentGoalNum}: ${currentGoal.name}
+                                </h3>
+                                <div class="space-y-2" id="lookForsContainer">
+                                    ${currentGoal.lookFors.map((lf, idx) => `
+                                        <div class="flex items-start gap-3 bg-white p-3 rounded">
+                                            <span class="text-sm text-gray-700 flex-1">${lf}</span>
+                                            <div class="flex gap-1 flex-shrink-0">
+                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="Yes">
+                                                    Yes
+                                                </button>
+                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="Partial">
+                                                    Partial
+                                                </button>
+                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="No">
+                                                    No
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Overall Impression</label>
+                                <div class="flex gap-2 flex-wrap">
+                                    ${['Strong start', 'On track', 'Support needed'].map(imp => `
+                                        <button type="button" class="impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-gray-100 text-gray-600" data-value="${imp}">
+                                            ${imp}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">🌟 Glow (what worked) *</label>
+                                <textarea id="obsGlow" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="What did you notice working well?"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">🎯 Grow (tiny next step) *</label>
+                                <textarea id="obsGrow" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="One small, actionable thing to try"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Notes (private, for you and your co-coach)</label>
+                                <textarea id="obsNotes" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="Internal notes, patterns, follow-up reminders..."></textarea>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="obsFollowUp" class="w-5 h-5 text-indigo-600">
+                                <label for="obsFollowUp" class="text-sm font-semibold text-gray-700">
+                                    🚨 Flag for immediate follow-up
+                                </label>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
+                                Save & Generate Email
+                            </button>
+                        ` : `
+                            <div class="text-center py-8 text-gray-500">
+                                <p>Select a teacher to begin observation</p>
+                            </div>
+                        `}
+                    </form>
+                </div>
+            `;
+        }
+
+        function renderAnalytics() {
+            const goalCounts = {};
+            state.observations.forEach(o => {
+                const key = `Goal ${o.goalNumber}`;
+                goalCounts[key] = (goalCounts[key] || 0) + 1;
+            });
+
+            const sortedGoals = Object.entries(goalCounts).sort((a, b) => b[1] - a[1]);
+
+            const needsAttention = state.teachers.filter(t => {
+                const teacherObs = state.observations.filter(o => o.teacherId === t.id);
+                if (teacherObs.length === 0) return true;
+                const lastObs = teacherObs[teacherObs.length - 1];
+                const daysSince = (Date.now() - new Date(lastObs.date).getTime()) / 86400000;
+                return daysSince > 14;
+            });
+
+            return `
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Cohort Patterns</h2>
+                        ${state.observations.length < 5 ? `
+                            <div class="text-center py-12 text-gray-500">
+                                <div class="text-6xl mb-4">📈</div>
+                                <p>Conduct at least 5 observations to see meaningful patterns</p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${sortedGoals.slice(0, 5).map(([goal, count]) => `
+                                    <div class="border-l-4 border-indigo-500 bg-gray-50 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="font-semibold text-gray-800">${goal}</div>
+                                            <div class="text-2xl font-bold text-indigo-600">${count}</div>
+                                        </div>
+                                        <div class="text-sm text-gray-600 mt-1">${count} observation${count !== 1 ? 's' : ''}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border-l-4 border-yellow-400">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            ✨ AI Insight
+                        </h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            ${state.observations.length < 10 
+                                ? "Continue building your observation baseline. After 10+ visits, you'll start seeing clear patterns across your cohort."
+                                : `You're building strong momentum! ${sortedGoals[0] ? `Your most common focus is ${sortedGoals[0][0]}.` : ''} Consider professional development around emerging themes to support multiple teachers simultaneously.`
+                            }
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Teachers Needing Attention</h2>
+                        ${needsAttention.length === 0 ? `
+                            <p class="text-gray-600">All teachers have been observed within the last 2 weeks. Great work! 🎉</p>
+                        ` : `
+                            <div class="space-y-2">
+                                ${needsAttention.map(t => `
+                                    <div class="bg-orange-50 border-l-4 border-orange-400 p-3 rounded">
+                                        <div class="font-semibold text-gray-800">${t.name}</div>
+                                        <div class="text-sm text-gray-600">${t.gradeBand} • ${t.primaryCoach}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Event Listeners
+        function attachEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    state.activeTab = e.currentTarget.dataset.tab;
+                    state.viewingTeacher = null;
+                    render();
+                });
+            });
+
+            // Coach selector
+            const coachSelect = document.getElementById('coachSelect');
+            if (coachSelect) {
+                coachSelect.addEventListener('change', (e) => {
+                    state.currentCoach = e.target.value;
+                    saveData();
+                });
+            }
+
+            // Add teacher button
+            const showAddBtn = document.getElementById('showAddTeacher');
+            if (showAddBtn) {
+                showAddBtn.addEventListener('click', () => {
+                    state.showAddTeacher = true;
+                    render();
+                });
+            }
+
+            // Cancel add teacher
+            const cancelAddBtn = document.getElementById('cancelAddTeacher');
+            if (cancelAddBtn) {
+                cancelAddBtn.addEventListener('click', () => {
+                    state.showAddTeacher = false;
+                    render();
+                });
+            }
+
+            // Add teacher form
+            const addTeacherForm = document.getElementById('addTeacherForm');
+            if (addTeacherForm) {
+                addTeacherForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const teacher = {
+                        id: Date.now().toString(),
+                        name: document.getElementById('teacherName').value,
+                        gradeBand: document.getElementById('teacherGradeBand').value,
+                        primaryCoach: document.getElementById('teacherCoach').value,
+                        currentGoal: 1,
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    };
+                    state.teachers.push(teacher);
+                    state.showAddTeacher = false;
+                    await saveData();
+                    render();
+                });
+            }
+
+            // Teacher selection for observation
+            const obsTeacher = document.getElementById('obsTeacher');
+            if (obsTeacher) {
+                obsTeacher.addEventListener('change', (e) => {
+                    state.selectedTeacher = e.target.value;
+                    render();
+                });
+            }
+
+            // Look-for buttons
+            document.querySelectorAll('.look-for-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.dataset.index;
+                    const value = e.target.dataset.value;
+                    
+                    // Reset all buttons in this row
+                    document.querySelectorAll(`[data-index="${index}"]`).forEach(b => {
+                        b.className = 'look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600';
+                    });
+                    
+                    // Highlight selected
+                    let bgColor = 'bg-gray-200 text-gray-600';
+                    if (value === 'Yes') bgColor = 'bg-green-500 text-white';
+                    else if (value === 'Partial') bgColor = 'bg-yellow-500 text-white';
+                    else if (value === 'No') bgColor = 'bg-red-500 text-white';
+                    
+                    e.target.className = `look-for-btn px-3 py-1 rounded text-xs font-semibold ${bgColor}`;
+                    e.target.dataset.selected = 'true';
+                });
+            });
+
+            // Impression buttons
+            document.querySelectorAll('.impression-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.impression-btn').forEach(b => {
+                        b.className = 'impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-gray-100 text-gray-600';
+                    });
+                    e.target.className = 'impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-indigo-600 text-white';
+                    e.target.dataset.selected = 'true';
+                });
+            });
+
+            // Observation form submission
+            const obsForm = document.getElementById('observationForm');
+            if (obsForm) {
+                obsForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const teacherId = document.getElementById('obsTeacher').value;
+                    const teacher = state.teachers.find(t => t.id === teacherId);
+                    
+                    // Collect look-for responses
+                    const lookForResponses = {};
+                    document.querySelectorAll('.look-for-btn[data-selected="true"]').forEach(btn => {
+                        lookForResponses[btn.dataset.index] = btn.dataset.value;
+                    });
+                    
+                    // Get impression
+                    const impressionBtn = document.querySelector('.impression-btn[data-selected="true"]');
+                    const impression = impressionBtn ? impressionBtn.dataset.value : 'On track';
+                    
+                    const observation = {
+                        id: Date.now().toString(),
+                        teacherId,
+                        date: document.getElementById('obsDate').value,
+                        coach: state.currentCoach,
+                        goalNumber: teacher.currentGoal || 1,
+                        lookForResponses,
+                        impression,
+                        glow: document.getElementById('obsGlow').value,
+                        grow: document.getElementById('obsGrow').value,
+                        coachNotes: document.getElementById('obsNotes').value,
+                        followUpNeeded: document.getElementById('obsFollowUp').checked,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    state.observations.push(observation);
+                    
+                    // Generate email preview
+                    const goals = GOALS[teacher.gradeBand];
+                    const goal = goals.find(g => g.id === observation.goalNumber);
+                    
+                    const emailText = `📧 EMAIL PREVIEW\n\n` +
+                        `To: ${teacher.name}\n\n` +
+                        `✨ Quick Visit Summary - ${new Date(observation.date).toLocaleDateString()}\n\n` +
+                        `🌟 What worked:\n${observation.glow}\n\n` +
+                        `🎯 Tiny next step:\n${observation.grow}\n\n` +
+                        `📍 Your current focus:\n${goal.emoji} Goal ${goal.id} - ${goal.name}\n\n` +
+                        `Keep up the great work!\n\n` +
+                        `- Coach ${state.currentCoach}`;
+                    
+                    alert(emailText);
+                    
+                    state.selectedTeacher = null;
+                    await saveData();
+                    state.activeTab = 'dashboard';
+                    render();
+                });
+            }
+
+            // Teacher card clicks
+            document.querySelectorAll('.teacher-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    state.viewingTeacher = e.currentTarget.dataset.teacherId;
+                    render();
+                });
+            });
+
+            // Back to teachers button
+            const backBtn = document.getElementById('backToTeachers');
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    state.viewingTeacher = null;
+                    render();
+                });
+            }
+        }
+
+        // Initialize app
+        async function init() {
+            await loadData();
+            render();
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
