@@ -1,753 +1,1534 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Instructional Coaching Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Micro Coaching 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:    #0f0f14;
+      --slate:  #1e1e2e;
+      --card:   #ffffff;
+      --muted:  #6b7280;
+      --border: #e5e7eb;
+      --teal:   #0d9488;
+      --teal2:  #0f766e;
+      --amber:  #d97706;
+      --rose:   #e11d48;
+      --indigo: #4f46e5;
+      --green:  #16a34a;
+      --bg:     #f4f4f8;
+      --radius: 14px;
+      --shadow: 0 2px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--slate);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.3);
+    }
+    .app-header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -.3px;
+    }
+    .app-header .sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 1px; font-family: 'DM Mono', monospace; }
+    .coach-pill {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 99px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .coach-pill select {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .coach-pill select option { color: var(--ink); background: #fff; }
+
+    /* ── Sync bar ── */
+    .sync-bar {
+      background: var(--teal);
+      color: #fff;
+      font-size: 12px;
+      text-align: center;
+      padding: 6px;
+      font-family: 'DM Mono', monospace;
+      display: none;
+    }
+    .sync-bar.show { display: block; }
+    .sync-bar.error { background: var(--rose); }
+
+    /* ── Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      background: var(--slate);
+      display: flex;
+      border-top: 1px solid rgba(255,255,255,.08);
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 4px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.45);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-btn .icon { font-size: 20px; line-height: 1; }
+    .nav-btn.active { color: #fff; }
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--teal);
+      border-radius: 0 0 3px 3px;
+    }
+
+    /* ── Main content ── */
+    .main { padding: 16px 16px 90px; max-width: 900px; margin: 0 auto; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Stat chips ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat-chip {
+      border-radius: 12px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-chip .val { font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-chip .lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; opacity: .75; }
+    .chip-teal { background: #ccfbf1; color: #0f766e; }
+    .chip-amber { background: #fef3c7; color: #92400e; }
+    .chip-rose  { background: #ffe4e6; color: #9f1239; }
+
+    /* ── Activity feed ── */
+    .feed-item {
+      border-left: 3px solid var(--indigo);
+      padding: 10px 12px;
+      background: #f9fafb;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 8px;
+    }
+    .feed-item .meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-family: 'DM Mono', monospace; }
+    .feed-item .title { font-size: 13px; font-weight: 600; }
+    .feed-item .imp { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .flag-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #fef3c7; color: #92400e;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 99px; margin-top: 5px;
+    }
+
+    /* ── Teacher cards ── */
+    .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .teacher-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color .2s, box-shadow .2s;
+      position: relative;
+    }
+    .teacher-card:hover { border-color: var(--teal); box-shadow: var(--shadow-lg); }
+    .teacher-card .tc-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .teacher-card .tc-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .teacher-card .tc-goal {
+      background: #ede9fe; color: #4c1d95;
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 99px;
+    }
+    .teacher-card .tc-stats { font-size: 11px; color: var(--muted); margin-top: 10px; display: flex; justify-content: space-between; }
+    .avail-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      display: inline-block; margin-right: 4px;
+    }
+    .avail-now { background: var(--green); box-shadow: 0 0 0 2px #dcfce7; }
+    .avail-no  { background: #d1d5db; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
+    .form-input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit; font-size: 14px; color: var(--ink);
+      background: #fff;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--teal); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Look-fors ── */
+    .lookfor-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: #f9fafb;
+      border-radius: 8px; margin-bottom: 6px;
+    }
+    .lookfor-text { flex: 1; font-size: 13px; }
+    .lookfor-btns { display: flex; gap: 4px; flex-shrink: 0; }
+    .lf-btn {
+      padding: 4px 9px; border-radius: 6px; border: none;
+      font-family: inherit; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+      background: #e5e7eb; color: #6b7280;
+    }
+    .lf-btn.yes    { background: #dcfce7; color: #15803d; }
+    .lf-btn.partial{ background: #fef3c7; color: #92400e; }
+    .lf-btn.no     { background: #fee2e2; color: #b91c1c; }
+
+    /* ── Impression selector ── */
+    .imp-row { display: flex; gap: 8px; }
+    .imp-btn {
+      flex: 1; padding: 10px 6px; border-radius: 9px; border: 1.5px solid var(--border);
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      background: #fff; cursor: pointer; transition: all .15s;
+      text-align: center;
+    }
+    .imp-btn.sel-strong  { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+    .imp-btn.sel-on      { background: #dbeafe; border-color: #2563eb; color: #1d4ed8; }
+    .imp-btn.sel-support { background: #fee2e2; border-color: #dc2626; color: #b91c1c; }
+
+    /* ── Goal display ── */
+    .goal-banner {
+      background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+    }
+    .goal-banner .goal-num { font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase; letter-spacing: .5px; }
+    .goal-banner .goal-name { font-size: 16px; font-weight: 700; color: #4c1d95; margin-top: 2px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 12px 20px; border-radius: 10px; border: none;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .18s;
+    }
+    .btn-primary { background: var(--teal); color: #fff; }
+    .btn-primary:hover { background: var(--teal2); box-shadow: 0 4px 12px rgba(13,148,136,.35); }
+    .btn-secondary { background: #f3f4f6; color: var(--ink); }
+    .btn-ghost { background: transparent; color: var(--teal); padding: 8px 14px; }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 8px; }
+    .btn-danger { background: #fee2e2; color: var(--rose); }
+
+    /* ── Schedule ── */
+    .now-section { margin-bottom: 20px; }
+    .now-header {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 700; color: var(--green);
+      margin-bottom: 10px;
+    }
+    .now-pulse {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(22,163,74,.4); }
+      50% { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+    }
+    .avail-chip {
+      display: flex; align-items: center; gap: 10px;
+      background: #f0fdf4; border: 1.5px solid #bbf7d0;
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+      cursor: pointer; transition: border-color .2s;
+    }
+    .avail-chip:hover { border-color: var(--green); }
+    .avail-chip .ac-name { font-size: 14px; font-weight: 600; }
+    .avail-chip .ac-meta { font-size: 11px; color: var(--muted); }
+    .avail-chip .ac-time { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--green); font-weight: 600; margin-left: auto; }
+    .visit-row {
+      display: flex; align-items: center; gap: 10px;
+      background: #f9fafb; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .visit-row .vr-time { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--indigo); font-weight: 600; min-width: 55px; }
+    .visit-row .vr-name { font-size: 13px; font-weight: 600; }
+    .visit-row .vr-coach { font-size: 11px; color: var(--muted); }
+    .visit-row .vr-actions { margin-left: auto; display: flex; gap: 6px; }
+    .visit-status {
+      font-size: 10px; font-weight: 700; padding: 2px 7px;
+      border-radius: 99px; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .vs-planned   { background: #dbeafe; color: #1d4ed8; }
+    .vs-done      { background: #dcfce7; color: #15803d; }
+    .vs-cancelled { background: #f3f4f6; color: #6b7280; }
+
+    /* ── Teacher detail ── */
+    .obs-entry {
+      border-left: 3px solid var(--indigo);
+      padding: 12px 14px; background: #f9fafb;
+      border-radius: 0 10px 10px 0; margin-bottom: 10px;
+    }
+    .obs-entry .oe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
+    .obs-entry .oe-date { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); }
+    .obs-entry .oe-goal { font-size: 11px; font-weight: 700; background: #ede9fe; color: #4c1d95; padding: 2px 7px; border-radius: 99px; }
+    .obs-entry .oe-glow { font-size: 13px; margin-bottom: 4px; }
+    .obs-entry .oe-grow { font-size: 13px; color: var(--teal2); }
+    .obs-entry .oe-note { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 4px; }
+
+    /* ── Analytics ── */
+    .insight-card {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border-radius: var(--radius); padding: 18px;
+      margin-bottom: 14px;
+    }
+    .insight-card .ic-label { font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: .5px; }
+    .insight-card .ic-text  { font-size: 14px; color: #78350f; margin-top: 6px; line-height: 1.5; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .bar-label { font-size: 12px; font-weight: 600; min-width: 60px; }
+    .bar-track { flex: 1; background: #e5e7eb; border-radius: 99px; height: 8px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; background: var(--teal); transition: width .5s; }
+    .bar-count { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--muted); min-width: 24px; text-align: right; }
+
+    /* ── Empty states ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty .e-icon { font-size: 44px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; line-height: 1.5; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 200; display: none; align-items: flex-end;
+      padding: 0;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; width: 100%;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 40px;
+      max-height: 85vh; overflow-y: auto;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 40px; height: 4px; background: #e5e7eb; border-radius: 99px; margin: 0 auto 20px; }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Config banner ── */
+    .config-banner {
+      background: #fffbeb; border: 1.5px solid #fcd34d;
+      border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+    }
+    .config-banner p { font-size: 13px; color: #92400e; line-height: 1.5; }
+    .config-banner code { font-family: 'DM Mono', monospace; font-size: 12px; background: #fef3c7; padding: 2px 5px; border-radius: 4px; }
+
+    .section-title {
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .6px;
+      margin-bottom: 10px; margin-top: 18px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f3f4f6; color: var(--muted);
+      font-size: 11px; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px;
+    }
+
+    .checkbox-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 0;
+    }
+    .checkbox-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--teal); cursor: pointer; }
+    .checkbox-row label { font-size: 14px; font-weight: 500; cursor: pointer; }
+
+    .days-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .day-toggle {
+      padding: 5px 10px; border-radius: 7px; border: 1.5px solid var(--border);
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      background: #fff; cursor: pointer; transition: all .15s;
+    }
+    .day-toggle.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--teal); font-size: 14px; font-weight: 600;
+      background: none; border: none; cursor: pointer;
+      padding: 0 0 16px; font-family: inherit;
+    }
+    .back-btn:hover { text-decoration: underline; }
+    
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    
+    .goal-progress {
+      display: flex; gap: 4px; margin-top: 8px;
+    }
+    .gp-step {
+      flex: 1; height: 4px; border-radius: 99px;
+      background: #e5e7eb;
+    }
+    .gp-step.done { background: var(--teal); }
+    .gp-step.current { background: var(--amber); }
+
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-purple-700 min-h-screen">
-    <div id="app" class="p-4 max-w-7xl mx-auto"></div>
+<body>
 
-    <script>
-        // State Management
-        let state = {
-            teachers: [],
-            observations: [],
-            currentCoach: 'Presley',
-            activeTab: 'dashboard',
-            showAddTeacher: false,
-            selectedTeacher: null,
-            viewingTeacher: null
-        };
+<!-- Header -->
+<div class="app-header">
+  <div>
+    <div class="app-header h1" style="font-size:17px;font-weight:700;letter-spacing:-.3px">📚 Micro Coaching</div>
+    <div class="sub" id="syncStatus">● offline mode</div>
+  </div>
+  <div class="coach-pill">
+    👤 <select id="coachSelect">
+      <option value="Presley">Presley</option>
+      <option value="Rickett">Rickett</option>
+    </select>
+  </div>
+</div>
 
-        // Goal Definitions from PDF
-        const GOALS = {
-            'K-2 UFLI': [
-                { id: 1, emoji: '🔵', name: 'Consistent UFLI Routine', lookFors: [
-                    'Lesson follows UFLI sequence',
-                    'Materials ready; transitions tight',
-                    'Students respond chorally',
-                    'Teacher monitors individual accuracy'
-                ]},
-                { id: 2, emoji: '🟢', name: 'Sound Accuracy (Not Speed)', lookFors: [
-                    'Teacher models clean sounds',
-                    'Immediate error correction',
-                    'Accuracy prioritized over pace'
-                ]},
-                { id: 3, emoji: '🟩', name: 'Daily Encoding', lookFors: [
-                    'Encoding included today',
-                    'Oral segmentation before writing',
-                    'Task length appropriate'
-                ]},
-                { id: 4, emoji: '🟡', name: 'Reduce Overload, Protect Thinking', lookFors: [
-                    'Oral rehearsal before writing',
-                    'Sentence stems / word banks used',
-                    'Copying minimized when needed'
-                ]},
-                { id: 5, emoji: '🟣', name: 'Independence Routines', lookFors: [
-                    '"When I\'m stuck…" strategies visible',
-                    'Students attempt strategy first'
-                ]},
-                { id: 6, emoji: '🟠', name: 'Transfer to Connected Text', lookFors: [
-                    'Decodable text used',
-                    'Students read aloud',
-                    'Accuracy + meaning checked'
-                ]}
-            ],
-            '3-5 Writing': [
-                { id: 1, emoji: '🔵', name: 'Daily Routine Happens', lookFors: [
-                    'Grade-level text used during instruction',
-                    'Students complete a short written response',
-                    'Writing is tied directly to the text'
-                ]},
-                { id: 2, emoji: '🟢', name: 'Understand Before Writing', lookFors: [
-                    'Turn-and-talk or oral rehearsal occurs',
-                    'Teacher prompts understanding',
-                    'Students can say an idea before writing'
-                ]},
-                { id: 3, emoji: '🟩', name: 'Find Evidence', lookFors: [
-                    'Students underline, box, or point to evidence',
-                    'Teacher asks "Where did you find that?"',
-                    'Evidence is identified before writing'
-                ]},
-                { id: 4, emoji: '🟡', name: 'Write WITH Evidence', lookFors: [
-                    'Sentence frames or models used as needed',
-                    'Writing includes quotes, paraphrases, or references',
-                    'Response connects claim → evidence'
-                ]},
-                { id: 5, emoji: '🟣', name: 'Clarity & Complete Thoughts', lookFors: [
-                    'Responses are in complete sentences',
-                    'Capitals/punctuation added after ideas',
-                    'Teacher checks for clarity'
-                ]},
-                { id: 6, emoji: '🟠', name: 'Extend Thinking', lookFors: [
-                    'Students explain why evidence matters',
-                    'Students compare ideas or add one meaningful detail',
-                    'Extension is focused, not filler'
-                ]}
-            ]
-        };
+<!-- Sync bar -->
+<div class="sync-bar" id="syncBar"></div>
 
-        // Data Persistence using localStorage
-        function loadData() {
-            try {
-                const t = localStorage.getItem('teachers');
-                const o = localStorage.getItem('observations');
-                const c = localStorage.getItem('currentCoach');
-                
-                if (t) state.teachers = JSON.parse(t);
-                if (o) state.observations = JSON.parse(o);
-                if (c) state.currentCoach = c;
-            } catch (e) {
-                console.log('Starting fresh - no existing data');
-            }
+<!-- Main -->
+<div class="main" id="mainContent"></div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+    <span class="icon">◎</span>Dashboard
+  </button>
+  <button class="nav-btn" data-tab="schedule" onclick="switchTab('schedule')">
+    <span class="icon">🗓</span>Schedule
+  </button>
+  <button class="nav-btn" data-tab="observe" onclick="switchTab('observe')">
+    <span class="icon">✏️</span>Observe
+  </button>
+  <button class="nav-btn" data-tab="teachers" onclick="switchTab('teachers')">
+    <span class="icon">👥</span>Teachers
+  </button>
+  <button class="nav-btn" data-tab="analytics" onclick="switchTab('analytics')">
+    <span class="icon">📈</span>Insights
+  </button>
+</nav>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-handle"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG — paste your Apps Script Web App URL here
+// ══════════════════════════════════════════════════════
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+const USE_SHEETS = SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE';
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let state = {
+  teachers: [],
+  observations: [],
+  visits: [],
+  currentCoach: localStorage.getItem('currentCoach') || 'Presley',
+  activeTab: 'dashboard',
+  viewingTeacher: null,
+  selectedTeacherId: null,
+  syncing: false,
+  lastSync: null
+};
+
+// ══════════════════════════════════════════════════════
+// GOALS
+// ══════════════════════════════════════════════════════
+const GOALS = {
+  'K-2 UFLI': [
+    { id: 1, emoji: '🔵', name: 'Consistent UFLI Routine', lookFors: [
+      'Lesson follows UFLI sequence',
+      'Materials ready; transitions tight',
+      'Students respond chorally',
+      'Teacher monitors individual accuracy'
+    ]},
+    { id: 2, emoji: '🟢', name: 'Sound Accuracy (Not Speed)', lookFors: [
+      'Teacher models clean sounds',
+      'Immediate error correction',
+      'Accuracy prioritized over pace'
+    ]},
+    { id: 3, emoji: '🟩', name: 'Daily Encoding', lookFors: [
+      'Encoding included today',
+      'Oral segmentation before writing',
+      'Task length appropriate'
+    ]},
+    { id: 4, emoji: '🟡', name: 'Reduce Overload, Protect Thinking', lookFors: [
+      'Oral rehearsal before writing',
+      'Sentence stems / word banks used',
+      'Copying minimized when needed'
+    ]},
+    { id: 5, emoji: '🟣', name: 'Independence Routines', lookFors: [
+      '"When I\'m stuck…" strategies visible',
+      'Students attempt strategy first'
+    ]},
+    { id: 6, emoji: '🟠', name: 'Transfer to Connected Text', lookFors: [
+      'Decodable text used',
+      'Students read aloud',
+      'Accuracy + meaning checked'
+    ]}
+  ],
+  '3-5 Writing': [
+    { id: 1, emoji: '🔵', name: 'Daily Routine Happens', lookFors: [
+      'Grade-level text used during instruction',
+      'Students complete a short written response',
+      'Writing is tied directly to the text'
+    ]},
+    { id: 2, emoji: '🟢', name: 'Understand Before Writing', lookFors: [
+      'Turn-and-talk or oral rehearsal occurs',
+      'Teacher prompts understanding',
+      'Students can say an idea before writing'
+    ]},
+    { id: 3, emoji: '🟩', name: 'Find Evidence', lookFors: [
+      'Students underline, box, or point to evidence',
+      'Teacher asks "Where did you find that?"',
+      'Evidence is identified before writing'
+    ]},
+    { id: 4, emoji: '🟡', name: 'Write WITH Evidence', lookFors: [
+      'Sentence frames or models used as needed',
+      'Writing includes quotes, paraphrases, or references',
+      'Response connects claim → evidence'
+    ]},
+    { id: 5, emoji: '🟣', name: 'Clarity & Complete Thoughts', lookFors: [
+      'Responses are in complete sentences',
+      'Capitals/punctuation added after ideas',
+      'Teacher checks for clarity'
+    ]},
+    { id: 6, emoji: '🟠', name: 'Extend Thinking', lookFors: [
+      'Students explain why evidence matters',
+      'Students compare ideas or add one meaningful detail',
+      'Extension is focused, not filler'
+    ]}
+  ]
+};
+
+// temp state for forms
+let obsForm = {};
+let visitForm = {};
+let teacherForm = {};
+
+// ══════════════════════════════════════════════════════
+// API / STORAGE
+// ══════════════════════════════════════════════════════
+function showSync(msg, isError) {
+  const bar = document.getElementById('syncBar');
+  bar.textContent = msg;
+  bar.className = 'sync-bar show' + (isError ? ' error' : '');
+  if (!isError) setTimeout(() => bar.classList.remove('show'), 2500);
+}
+
+async function apiGet(action) {
+  if (!USE_SHEETS) return null;
+  const res = await fetch(`${SCRIPT_URL}?action=${action}`);
+  return res.json();
+}
+
+async function apiPost(action, data) {
+  if (!USE_SHEETS) return null;
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, data })
+  });
+  return res.json();
+}
+
+function localSave() {
+  localStorage.setItem('mc_teachers', JSON.stringify(state.teachers));
+  localStorage.setItem('mc_observations', JSON.stringify(state.observations));
+  localStorage.setItem('mc_visits', JSON.stringify(state.visits));
+}
+
+function localLoad() {
+  try {
+    const t = localStorage.getItem('mc_teachers');
+    const o = localStorage.getItem('mc_observations');
+    const v = localStorage.getItem('mc_visits');
+    if (t) state.teachers = JSON.parse(t);
+    if (o) state.observations = JSON.parse(o);
+    if (v) state.visits = JSON.parse(v);
+  } catch(e) {}
+}
+
+async function syncFromSheets() {
+  if (!USE_SHEETS) {
+    document.getElementById('syncStatus').textContent = '● local mode';
+    return;
+  }
+  try {
+    document.getElementById('syncStatus').textContent = '↻ syncing…';
+    const data = await apiGet('getAll');
+    if (data.error) throw new Error(data.error);
+    state.teachers = data.teachers || [];
+    state.observations = data.observations || [];
+    state.visits = data.visits || [];
+    localSave();
+    state.lastSync = new Date();
+    document.getElementById('syncStatus').textContent = '● live · ' + state.lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    showSync('✓ Synced with Google Sheets');
+  } catch(e) {
+    document.getElementById('syncStatus').textContent = '⚠ sync failed';
+    showSync('Sync failed — using local data', true);
+    localLoad();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// AVAILABILITY HELPERS
+// ══════════════════════════════════════════════════════
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function isAvailableNow(teacher) {
+  const now = new Date();
+  const dayName = DAYS[now.getDay()];
+  const days = (teacher.availableDays || 'Mon,Tue,Wed,Thu,Fri').split(',').map(d => d.trim());
+  if (!days.includes(dayName)) return false;
+
+  const start = teacher.availabilityStart;
+  const end = teacher.availabilityEnd;
+  if (!start || !end) return false;
+
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  return nowMins >= sh * 60 + sm && nowMins <= eh * 60 + em;
+}
+
+function isAvailableAtTime(teacher, timeStr, dayStr) {
+  const days = (teacher.availableDays || 'Mon,Tue,Wed,Thu,Fri').split(',').map(d => d.trim());
+  if (!days.includes(dayStr)) return false;
+  const start = teacher.availabilityStart;
+  const end = teacher.availabilityEnd;
+  if (!start || !end || !timeStr) return false;
+  const [th, tm] = timeStr.split(':').map(Number);
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const t = th * 60 + tm, s = sh * 60 + sm, e = eh * 60 + em;
+  return t >= s && t <= e;
+}
+
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════
+function render() {
+  document.getElementById('coachSelect').value = state.currentCoach;
+  const c = document.getElementById('mainContent');
+  if (state.viewingTeacher) {
+    c.innerHTML = renderTeacherDetail(state.viewingTeacher);
+    return;
+  }
+  switch(state.activeTab) {
+    case 'dashboard': c.innerHTML = renderDashboard(); break;
+    case 'schedule':  c.innerHTML = renderSchedule();  break;
+    case 'observe':   c.innerHTML = renderObserve();   break;
+    case 'teachers':  c.innerHTML = renderTeachers();  break;
+    case 'analytics': c.innerHTML = renderAnalytics(); break;
+  }
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function renderDashboard() {
+  const week = state.observations.filter(o => daysSince(o.date) <= 7).length;
+  const flags = state.observations.filter(o => o.followUpNeeded === true || o.followUpNeeded === 'TRUE').length;
+  const recent = [...state.observations].reverse().slice(0, 6);
+
+  const availNow = state.teachers.filter(isAvailableNow);
+
+  return `
+    ${!USE_SHEETS ? configBanner() : ''}
+
+    <div class="stats-row">
+      <div class="stat-chip chip-teal">
+        <div class="val">${state.teachers.length}</div>
+        <div class="lbl">Teachers</div>
+      </div>
+      <div class="stat-chip chip-amber">
+        <div class="val">${week}</div>
+        <div class="lbl">This Week</div>
+      </div>
+      <div class="stat-chip chip-rose">
+        <div class="val">${flags}</div>
+        <div class="lbl">Flagged</div>
+      </div>
+    </div>
+
+    ${availNow.length > 0 ? `
+    <div class="card" style="border-left:4px solid var(--green)">
+      <div class="now-header">
+        <div class="now-pulse"></div>
+        ${availNow.length} teacher${availNow.length > 1 ? 's' : ''} available right now
+      </div>
+      ${availNow.slice(0,3).map(t => `
+        <div class="avail-chip" onclick="quickObserve('${t.id}')">
+          <div>
+            <div class="ac-name">${t.name}</div>
+            <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1}</div>
+          </div>
+          <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
+        </div>
+      `).join('')}
+      ${availNow.length > 3 ? `<div style="font-size:12px;color:var(--muted);text-align:center;padding-top:4px">+${availNow.length-3} more → Schedule tab</div>` : ''}
+    </div>` : ''}
+
+    <div class="card">
+      <div class="card-title">Recent Activity</div>
+      ${recent.length === 0 ? `<div class="empty"><div class="e-icon">📋</div><p>No observations yet.<br>Tap Observe to get started.</p></div>` :
+        recent.map(obs => {
+          const t = state.teachers.find(x => x.id == obs.teacherId);
+          return `<div class="feed-item">
+            <div class="meta">${fmtDate(obs.date)} · Goal ${obs.goalNumber} · ${obs.coach}</div>
+            <div class="title">${t ? t.name : 'Unknown Teacher'}</div>
+            <div class="imp">${obs.impression}</div>
+            ${obs.followUpNeeded === true || obs.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
+          </div>`;
+        }).join('')
+      }
+    </div>
+  `;
+}
+
+function configBanner() {
+  return `<div class="config-banner">
+    <p>⚙️ <strong>Local mode</strong> — data saves to this device only. To share data with Rickett, set up the Google Sheets backend and paste your Apps Script URL into the <code>SCRIPT_URL</code> variable at the top of this file. See the setup guide.</p>
+    <button class="btn btn-sm btn-secondary" style="margin-top:10px" onclick="switchTab('settings')">Setup Guide →</button>
+  </div>`;
+}
+
+// ── SCHEDULE ───────────────────────────────────────────
+function renderSchedule() {
+  const now = new Date();
+  const todayVisits = state.visits.filter(v => v.visitDate === toDateStr(now)).sort((a,b) => a.visitTime > b.visitTime ? 1 : -1);
+  const availNow = state.teachers.filter(isAvailableNow);
+
+  return `
+    <div class="section-title">Available Right Now — ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+    ${availNow.length === 0 ? `<div class="card"><div class="empty"><div class="e-icon">☕</div><p>No teachers available at this moment.</p></div></div>` :
+      `<div class="card">
+        ${availNow.map(t => {
+          const alreadyScheduled = todayVisits.find(v => v.teacherId == t.id && v.status !== 'cancelled');
+          return `<div class="avail-chip" onclick="openScheduleVisit('${t.id}')">
+            <div>
+              <div class="ac-name">${t.name}</div>
+              <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1} · Room ${t.room || '—'}</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+              ${alreadyScheduled ? `<span class="visit-status vs-planned">Scheduled</span>` : ''}
+              <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`
+    }
+
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="section-title" style="margin-bottom:0">Today's Planned Visits</div>
+      <button class="btn btn-sm btn-primary" onclick="openPlanVisitModal()">+ Plan Visit</button>
+    </div>
+    <div style="height:10px"></div>
+    ${todayVisits.length === 0
+      ? `<div class="card"><div class="empty"><div class="e-icon">🗓</div><p>No visits planned for today.</p></div></div>`
+      : `<div class="card">
+          ${todayVisits.map(v => {
+            const statusClass = v.status === 'done' ? 'vs-done' : v.status === 'cancelled' ? 'vs-cancelled' : 'vs-planned';
+            return `<div class="visit-row">
+              <div class="vr-time">${fmtTime(v.visitTime)}</div>
+              <div>
+                <div class="vr-name">${v.teacherName}</div>
+                <div class="vr-coach">Coach ${v.coach}</div>
+                ${v.notes ? `<div class="vr-coach" style="margin-top:2px;font-style:italic">${v.notes}</div>` : ''}
+              </div>
+              <div class="vr-actions">
+                <span class="visit-status ${statusClass}">${v.status || 'planned'}</span>
+                <button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px" onclick="editVisit('${v.id}')">✏️</button>
+                ${v.status !== 'done' ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#dcfce7;color:#15803d" onclick="markVisitDone('${v.id}')">✓</button>` : ''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`
+    }
+
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="section-title" style="margin-bottom:0">All Teachers — Availability</div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="card">
+      ${state.teachers.length === 0 ? `<div class="empty"><p>Add teachers first.</p></div>` :
+        state.teachers.map(t => {
+          const avail = isAvailableNow(t);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)" onclick="openScheduleVisit('${t.id}')">
+            <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}"></span>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600">${t.name}</div>
+              <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · Room ${t.room || '—'}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;font-family:'DM Mono';color:var(--${avail?'green':'muted'})">${t.availabilityStart && t.availabilityEnd ? fmtTime(t.availabilityStart)+'–'+fmtTime(t.availabilityEnd) : 'No window set'}</div>
+              <div style="font-size:10px;color:var(--muted)">${(t.availableDays||'').replace(/,/g,' ')}</div>
+            </div>
+          </div>`;
+        }).join('')
+      }
+    </div>
+  `;
+}
+
+// ── OBSERVE ────────────────────────────────────────────
+function renderObserve() {
+  const teacher = state.selectedTeacherId ? state.teachers.find(t => t.id == state.selectedTeacherId) : null;
+  const goals = teacher ? GOALS[teacher.gradeBand] || [] : [];
+  const goalNum = parseInt(obsForm.goalNumber || teacher?.currentGoal || 1);
+  const goal = goals.find(g => g.id === goalNum);
+
+  return `
+    <div class="card">
+      <div class="card-title">New Observation</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teacher *</label>
+          <select class="form-input" onchange="selectObsTeacher(this.value)">
+            <option value="">Select…</option>
+            ${state.teachers.map(t => `<option value="${t.id}" ${state.selectedTeacherId == t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input type="date" class="form-input" id="obsDate" value="${obsForm.date || toDateStr(new Date())}" onchange="obsForm.date=this.value">
+        </div>
+      </div>
+
+      ${teacher && goal ? `
+        <div class="goal-banner">
+          <div class="goal-num">${goal.emoji} Goal ${goalNum} of ${goals.length}</div>
+          <div class="goal-name">${goal.name}</div>
+          <div class="goal-progress">
+            ${goals.map((g,i) => `<div class="gp-step ${g.id < goalNum ? 'done' : g.id === goalNum ? 'current' : ''}"></div>`).join('')}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Look-Fors</label>
+          ${goal.lookFors.map((lf, i) => `
+            <div class="lookfor-row">
+              <div class="lookfor-text">${lf}</div>
+              <div class="lookfor-btns">
+                <button class="lf-btn ${obsForm.lookFors && obsForm.lookFors[i]==='Yes'?'yes':''}" onclick="setLookFor(${i},'Yes')">Yes</button>
+                <button class="lf-btn ${obsForm.lookFors && obsForm.lookFors[i]==='Partial'?'partial':''}" onclick="setLookFor(${i},'Partial')">Part</button>
+                <button class="lf-btn ${obsForm.lookFors && obsForm.lookFors[i]==='No'?'no':''}" onclick="setLookFor(${i},'No')">No</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Overall Impression</label>
+          <div class="imp-row">
+            <button class="imp-btn ${obsForm.impression==='Strong start'?'sel-strong':''}" onclick="setImpression('Strong start')">💪 Strong start</button>
+            <button class="imp-btn ${obsForm.impression==='On track'?'sel-on':''}" onclick="setImpression('On track')">✅ On track</button>
+            <button class="imp-btn ${obsForm.impression==='Support needed'?'sel-support':''}" onclick="setImpression('Support needed')">🆘 Support needed</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🌟 Glow — what worked</label>
+          <textarea class="form-input" rows="2" placeholder="What did you notice?" onchange="obsForm.glow=this.value">${obsForm.glow||''}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🎯 Grow — tiny next step</label>
+          <textarea class="form-input" rows="2" placeholder="One small actionable thing to try" onchange="obsForm.grow=this.value">${obsForm.grow||''}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Coach Notes (private)</label>
+          <textarea class="form-input" rows="2" placeholder="Internal notes for you & Rickett…" onchange="obsForm.coachNotes=this.value">${obsForm.coachNotes||''}</textarea>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="followUp" ${obsForm.followUpNeeded?'checked':''} onchange="obsForm.followUpNeeded=this.checked">
+          <label for="followUp">🚨 Flag for immediate follow-up</label>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button class="btn btn-primary btn-full" onclick="submitObservation()">Save & Preview Email</button>
+          ${goalNum < goals.length ? `<button class="btn btn-secondary" style="white-space:nowrap" onclick="advanceGoal()">Advance Goal →</button>` : ''}
+        </div>
+      ` : `
+        <div class="empty" style="padding:30px 0">
+          <div class="e-icon">👆</div>
+          <p>Select a teacher to start the observation form.</p>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+// ── TEACHERS ───────────────────────────────────────────
+function renderTeachers() {
+  return `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="openAddTeacher()">+ Add Teacher</button>
+    </div>
+    ${state.teachers.length === 0
+      ? `<div class="card"><div class="empty"><div class="e-icon">👥</div><p>No teachers yet. Add your first teacher to get started.</p></div></div>`
+      : `<div class="teacher-grid">
+          ${state.teachers.map(t => {
+            const tObs = state.observations.filter(o => o.teacherId == t.id);
+            const last = tObs[tObs.length - 1];
+            const avail = isAvailableNow(t);
+            const goals = GOALS[t.gradeBand] || [];
+            const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+            return `<div class="teacher-card" onclick="viewTeacher('${t.id}')">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div class="tc-name">${t.name}</div>
+                <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" title="${avail ? 'Available now' : 'Not available'}"></span>
+              </div>
+              <div class="tc-meta">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? ` · Room ${t.room}` : ''}</div>
+              <div class="tc-goal">${goalObj ? goalObj.emoji : ''} Goal ${t.currentGoal || 1}: ${goalObj ? goalObj.name : ''}</div>
+              <div class="goal-progress" style="margin-top:8px">
+                ${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}
+              </div>
+              <div class="tc-stats">
+                <span>${tObs.length} observations</span>
+                <span>${last ? fmtDate(last.date) : 'No visits yet'}</span>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`
+    }
+  `;
+}
+
+// ── TEACHER DETAIL ─────────────────────────────────────
+function renderTeacherDetail(id) {
+  const t = state.teachers.find(x => x.id == id);
+  if (!t) { state.viewingTeacher = null; return renderTeachers(); }
+  const tObs = state.observations.filter(o => o.teacherId == t.id).reverse();
+  const goals = GOALS[t.gradeBand] || [];
+  const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+  const avail = isAvailableNow(t);
+
+  return `
+    <button class="back-btn" onclick="state.viewingTeacher=null;render()">← All Teachers</button>
+
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:4px">${t.name}</div>
+          <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? ` · Room ${t.room}` : ''}</div>
+          ${t.email ? `<div style="font-size:12px;color:var(--teal);margin-top:4px">${t.email}</div>` : ''}
+        </div>
+        <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" style="width:12px;height:12px;flex-shrink:0;margin-top:4px"></span>
+      </div>
+
+      <hr class="divider">
+
+      <div class="goal-banner">
+        <div class="goal-num">${goalObj ? goalObj.emoji : ''} Current Goal ${t.currentGoal || 1}</div>
+        <div class="goal-name">${goalObj ? goalObj.name : ''}</div>
+        <div class="goal-progress">${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}</div>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="quickObserve('${t.id}')">✏️ Observe Now</button>
+        <button class="btn btn-secondary btn-sm" onclick="openEditTeacher('${t.id}')">Edit</button>
+        ${parseInt(t.currentGoal||1) < goals.length ? `<button class="btn btn-sm" style="background:#ede9fe;color:#4c1d95" onclick="advanceGoalFor('${t.id}')">Advance Goal →</button>` : ''}
+      </div>
+
+      <hr class="divider">
+
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Availability Window</div>
+      <div style="font-size:13px;color:var(--muted)">
+        ${t.availabilityStart && t.availabilityEnd
+          ? `${fmtTime(t.availabilityStart)} – ${fmtTime(t.availabilityEnd)} · ${(t.availableDays||'').replace(/,/g,' ')}`
+          : 'Not set — tap Edit to add availability window'
         }
+      </div>
+    </div>
 
-        function saveData() {
-            try {
-                localStorage.setItem('teachers', JSON.stringify(state.teachers));
-                localStorage.setItem('observations', JSON.stringify(state.observations));
-                localStorage.setItem('currentCoach', state.currentCoach);
-            } catch (e) {
-                console.error('Error saving:', e);
-                alert('Unable to save data. Please try again.');
-            }
-        }
+    <div class="card-title" style="padding:0 4px 8px">Observation History (${tObs.length})</div>
+    ${tObs.length === 0
+      ? `<div class="card"><div class="empty"><p>No observations yet for ${t.name}.</p></div></div>`
+      : tObs.map(o => {
+          const g = (GOALS[t.gradeBand]||[]).find(x => x.id === parseInt(o.goalNumber));
+          return `<div class="obs-entry">
+            <div class="oe-header">
+              <div class="oe-date">${fmtDate(o.date)} · ${o.coach}</div>
+              <span class="oe-goal">${g ? g.emoji : ''} Goal ${o.goalNumber}</span>
+            </div>
+            <div class="oe-glow">🌟 ${o.glow}</div>
+            <div class="oe-grow">🎯 ${o.grow}</div>
+            ${o.coachNotes ? `<div class="oe-note">📝 ${o.coachNotes}</div>` : ''}
+            ${o.followUpNeeded === true || o.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
+          </div>`;
+        }).join('')
+    }
+  `;
+}
 
-        // Render Main App
-        function render() {
-            const app = document.getElementById('app');
-            app.innerHTML = `
-                ${renderHeader()}
-                ${renderNav()}
-                ${renderContent()}
-            `;
-            attachEventListeners();
-        }
+// ── ANALYTICS ──────────────────────────────────────────
+function renderAnalytics() {
+  const total = state.observations.length;
+  const goalCounts = {};
+  state.observations.forEach(o => {
+    const k = `Goal ${o.goalNumber}`;
+    goalCounts[k] = (goalCounts[k] || 0) + 1;
+  });
+  const sorted = Object.entries(goalCounts).sort((a,b) => b[1]-a[1]);
+  const maxCount = sorted[0] ? sorted[0][1] : 1;
 
-        function renderHeader() {
-            return `
-                <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div>
-                            <h1 class="text-3xl font-bold text-indigo-600 mb-2">📚 Instructional Coaching Tracker</h1>
-                            <p class="text-gray-600">Micro-coaching for literacy growth</p>
-                        </div>
-                        <div>
-                            <label class="text-sm text-gray-600 block mb-1">Coach:</label>
-                            <select id="coachSelect" class="px-4 py-2 border-2 border-indigo-200 rounded-lg font-semibold focus:outline-none focus:border-indigo-500">
-                                <option ${state.currentCoach === 'Presley' ? 'selected' : ''}>Presley</option>
-                                <option ${state.currentCoach === 'Rickett' ? 'selected' : ''}>Rickett</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+  const noVisit14 = state.teachers.filter(t => {
+    const tObs = state.observations.filter(o => o.teacherId == t.id);
+    if (!tObs.length) return true;
+    const last = tObs.sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+    return daysSince(last.date) > 14;
+  });
 
-        function renderNav() {
-            const tabs = [
-                { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-                { id: 'teachers', label: 'Teachers', icon: '👥' },
-                { id: 'observe', label: 'New Observation', icon: '✓' },
-                { id: 'analytics', label: 'Analytics', icon: '📈' }
-            ];
+  const coachCounts = {};
+  state.observations.forEach(o => { coachCounts[o.coach] = (coachCounts[o.coach]||0)+1; });
 
-            return `
-                <div class="bg-white rounded-xl shadow-lg p-2 mb-6 flex gap-2 overflow-x-auto">
-                    ${tabs.map(tab => `
-                        <button data-tab="${tab.id}" class="tab-btn flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
-                            state.activeTab === tab.id 
-                                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' 
-                                : 'text-gray-600 hover:bg-gray-100'
-                        }">
-                            <span>${tab.icon}</span>
-                            <span>${tab.label}</span>
-                        </button>
-                    `).join('')}
-                </div>
-            `;
-        }
+  const insight = total < 5
+    ? "Build your baseline — after 5+ observations you'll see patterns."
+    : total < 10
+    ? `Good start! ${sorted[0] ? sorted[0][0]+' is your most common focus.' : ''} Keep observing to find broader patterns.`
+    : `Strong dataset! ${sorted[0] ? sorted[0][0]+' dominates ('+sorted[0][1]+' visits).' : ''} ${noVisit14.length > 0 ? `${noVisit14.length} teacher${noVisit14.length>1?'s':''} need attention.` : 'All teachers observed recently. 🎉'}`;
 
-        function renderContent() {
-            if (state.viewingTeacher) return renderTeacherDetail();
-            
-            switch(state.activeTab) {
-                case 'dashboard': return renderDashboard();
-                case 'teachers': return renderTeachers();
-                case 'observe': return renderObserveForm();
-                case 'analytics': return renderAnalytics();
-                default: return renderDashboard();
-            }
-        }
+  return `
+    <div class="stats-row">
+      <div class="stat-chip chip-teal"><div class="val">${total}</div><div class="lbl">Total Obs</div></div>
+      <div class="stat-chip chip-amber"><div class="val">${Object.keys(coachCounts).length ? Math.max(...Object.values(coachCounts)) : 0}</div><div class="lbl">Most by 1 Coach</div></div>
+      <div class="stat-chip chip-rose"><div class="val">${noVisit14.length}</div><div class="lbl">Need Attn</div></div>
+    </div>
 
-        function renderDashboard() {
-            const thisWeek = state.observations.filter(o => {
-                const days = (Date.now() - new Date(o.date).getTime()) / 86400000;
-                return days <= 7;
-            }).length;
+    <div class="insight-card">
+      <div class="ic-label">✨ AI Insight</div>
+      <div class="ic-text">${insight}</div>
+    </div>
 
-            const needsFollowUp = state.observations.filter(o => o.followUpNeeded).length;
+    <div class="card">
+      <div class="card-title">Observations by Goal</div>
+      ${total < 3
+        ? `<div class="empty" style="padding:20px 0"><p>Observe more to see goal distribution.</p></div>`
+        : sorted.map(([goal, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${goal}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxCount*100)}%"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>
+        `).join('')
+      }
+    </div>
 
-            return `
-                <div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
-                            <div class="text-4xl font-bold mb-2">${state.teachers.length}</div>
-                            <div class="text-sm opacity-90">Active Teachers</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
-                            <div class="text-4xl font-bold mb-2">${thisWeek}</div>
-                            <div class="text-sm opacity-90">Observations This Week</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white">
-                            <div class="text-4xl font-bold mb-2">${needsFollowUp}</div>
-                            <div class="text-sm opacity-90">Need Follow-Up</div>
-                        </div>
-                    </div>
+    <div class="card">
+      <div class="card-title">By Coach</div>
+      ${Object.entries(coachCounts).length === 0
+        ? `<div class="empty" style="padding:20px 0"><p>No data yet.</p></div>`
+        : Object.entries(coachCounts).map(([coach, count]) => `
+          <div class="bar-row">
+            <div class="bar-label">${coach}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/total*100)}%;background:var(--indigo)"></div></div>
+            <div class="bar-count">${count}</div>
+          </div>
+        `).join('')
+      }
+    </div>
 
-                    <div class="bg-white rounded-2xl shadow-xl p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-                        ${state.observations.length === 0 ? `
-                            <div class="text-center py-12 text-gray-500">
-                                <div class="text-6xl mb-4">📅</div>
-                                <p>No observations yet. Add teachers and start coaching!</p>
-                            </div>
-                        ` : `
-                            <div class="space-y-3">
-                                ${state.observations.slice(-5).reverse().map(obs => {
-                                    const teacher = state.teachers.find(t => t.id === obs.teacherId);
-                                    return `
-                                        <div class="border-l-4 border-indigo-500 bg-gray-50 rounded-lg p-4">
-                                            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-                                                <div class="font-semibold text-gray-800">
-                                                    ${teacher?.name || 'Unknown'} • Goal ${obs.goalNumber}
-                                                </div>
-                                                <div class="text-sm text-gray-500">
-                                                    ${new Date(obs.date).toLocaleDateString()} • ${obs.coach}
-                                                </div>
-                                            </div>
-                                            <div class="text-sm text-gray-600"><strong>Impression:</strong> ${obs.impression}</div>
-                                            ${obs.followUpNeeded ? `
-                                                <div class="mt-2 inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">
-                                                    ⚠️ Follow-up needed
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
+    <div class="card">
+      <div class="card-title">⚠️ Need Attention (14+ days)</div>
+      ${noVisit14.length === 0
+        ? `<p style="font-size:13px;color:var(--muted)">All teachers observed within 2 weeks. 🎉</p>`
+        : noVisit14.map(t => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:13px;font-weight:600">${t.name}</div>
+              <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · ${t.primaryCoach}</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="quickObserve('${t.id}')">Observe</button>
+          </div>
+        `).join('')
+      }
+    </div>
+  `;
+}
 
-        function renderTeachers() {
-            if (state.showAddTeacher) {
-                return `
-                    <div class="bg-white rounded-2xl shadow-xl p-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Add Teacher</h3>
-                        <form id="addTeacherForm" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher Name *</label>
-                                <input type="text" id="teacherName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" placeholder="e.g., Ms. Walker">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Grade Band *</label>
-                                <select id="teacherGradeBand" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
-                                    <option value="K-2 UFLI">K-2 UFLI</option>
-                                    <option value="3-5 Writing">3-5 Writing</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Primary Coach</label>
-                                <select id="teacherCoach" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
-                                    <option>Presley</option>
-                                    <option>Rickett</option>
-                                </select>
-                            </div>
-                            <div class="flex gap-3">
-                                <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all">
-                                    Add Teacher
-                                </button>
-                                <button type="button" id="cancelAddTeacher" class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                `;
-            }
+// ══════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════
+function openModal(html) {
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
 
-            if (state.teachers.length === 0) {
-                return `
-                    <div class="bg-white rounded-2xl shadow-xl p-12 text-center">
-                        <div class="text-6xl mb-4">👥</div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">No Teachers Yet</h3>
-                        <p class="text-gray-600 mb-6">Add your first teacher to get started</p>
-                        <button id="showAddTeacher" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
-                            + Add Teacher
-                        </button>
-                    </div>
-                `;
-            }
+// Add / Edit Teacher
+function openAddTeacher() {
+  teacherForm = { availableDays: ['Mon','Tue','Wed','Thu','Fri'] };
+  openModal(teacherModalHTML(false));
+}
+function openEditTeacher(id) {
+  const t = state.teachers.find(x => x.id == id);
+  teacherForm = { ...t, availableDays: (t.availableDays||'Mon,Tue,Wed,Thu,Fri').split(',') };
+  openModal(teacherModalHTML(true));
+}
+function teacherModalHTML(isEdit) {
+  const f = teacherForm;
+  const daysAll = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  return `
+    <div class="modal-title">${isEdit ? 'Edit' : 'Add'} Teacher</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Name *</label>
+        <input class="form-input" id="tf-name" value="${f.name||''}" placeholder="Ms. Walker">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room</label>
+        <input class="form-input" id="tf-room" value="${f.room||''}" placeholder="101">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="tf-email" value="${f.email||''}" placeholder="teacher@school.edu" type="email">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Grade Band *</label>
+        <select class="form-input" id="tf-band">
+          <option ${f.gradeBand==='K-2 UFLI'?'selected':''}>K-2 UFLI</option>
+          <option ${f.gradeBand==='3-5 Writing'?'selected':''}>3-5 Writing</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Primary Coach</label>
+        <select class="form-input" id="tf-coach">
+          <option ${f.primaryCoach==='Presley'?'selected':''}>Presley</option>
+          <option ${f.primaryCoach==='Rickett'?'selected':''}>Rickett</option>
+        </select>
+      </div>
+    </div>
+    ${isEdit ? `
+    <div class="form-group">
+      <label class="form-label">Current Goal</label>
+      <select class="form-input" id="tf-goal">
+        ${(GOALS[f.gradeBand]||GOALS['K-2 UFLI']).map(g => `<option value="${g.id}" ${parseInt(f.currentGoal||1)===g.id?'selected':''}>${g.id}: ${g.name}</option>`).join('')}
+      </select>
+    </div>` : ''}
+    <div class="form-group">
+      <label class="form-label">Available Days</label>
+      <div class="days-row">
+        ${daysAll.map(d => `<button type="button" class="day-toggle ${(f.availableDays||[]).includes(d)?'on':''}" onclick="toggleDay('${d}',this)">${d}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Available From</label>
+        <input class="form-input" type="time" id="tf-start" value="${f.availabilityStart||''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Available Until</label>
+        <input class="form-input" type="time" id="tf-end" value="${f.availabilityEnd||''}">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveTeacher(${isEdit})">
+      ${isEdit ? 'Save Changes' : 'Add Teacher'}
+    </button>
+  `;
+}
 
-            return `
-                <div>
-                    <div class="mb-6">
-                        <button id="showAddTeacher" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
-                            <span>+</span> Add Teacher
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        ${state.teachers.map(teacher => {
-                            const obs = state.observations.filter(o => o.teacherId === teacher.id);
-                            const lastObs = obs[obs.length - 1];
-                            return `
-                                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all cursor-pointer teacher-card" data-teacher-id="${teacher.id}">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h3 class="text-xl font-bold text-gray-800">${teacher.name}</h3>
-                                        <span class="text-2xl">Goal ${teacher.currentGoal || 1}</span>
-                                    </div>
-                                    <div class="text-sm text-gray-600 mb-3">
-                                        <div>${teacher.gradeBand}</div>
-                                        <div>Coach: ${teacher.primaryCoach}</div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-gray-500">${obs.length} observations</span>
-                                        ${lastObs ? `<span class="text-gray-500">Last: ${new Date(lastObs.date).toLocaleDateString()}</span>` : ''}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            `;
-        }
+function toggleDay(day, el) {
+  if (!teacherForm.availableDays) teacherForm.availableDays = [];
+  const idx = teacherForm.availableDays.indexOf(day);
+  if (idx > -1) { teacherForm.availableDays.splice(idx,1); el.classList.remove('on'); }
+  else { teacherForm.availableDays.push(day); el.classList.add('on'); }
+}
 
-        function renderTeacherDetail() {
-            const teacher = state.teachers.find(t => t.id === state.viewingTeacher);
-            if (!teacher) {
-                state.viewingTeacher = null;
-                return renderTeachers();
-            }
+async function saveTeacher(isEdit) {
+  const name = document.getElementById('tf-name').value.trim();
+  if (!name) { alert('Name is required'); return; }
+  const data = {
+    id: isEdit ? teacherForm.id : Date.now().toString(),
+    name,
+    room: document.getElementById('tf-room').value.trim(),
+    email: document.getElementById('tf-email').value.trim(),
+    gradeBand: document.getElementById('tf-band').value,
+    primaryCoach: document.getElementById('tf-coach').value,
+    currentGoal: isEdit ? parseInt(document.getElementById('tf-goal').value) : 1,
+    availabilityStart: document.getElementById('tf-start').value,
+    availabilityEnd: document.getElementById('tf-end').value,
+    availableDays: (teacherForm.availableDays||[]).join(','),
+    status: 'active',
+    createdAt: isEdit ? teacherForm.createdAt : new Date().toISOString()
+  };
+  if (isEdit) {
+    const idx = state.teachers.findIndex(t => t.id == data.id);
+    state.teachers[idx] = data;
+    if (USE_SHEETS) { showSync('Saving…'); await apiPost('updateTeacher', data); showSync('✓ Saved'); }
+  } else {
+    state.teachers.push(data);
+    if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveTeacher', data); showSync('✓ Saved'); }
+  }
+  localSave();
+  closeModalDirect();
+  render();
+}
 
-            const obs = state.observations.filter(o => o.teacherId === teacher.id).reverse();
-            const goals = GOALS[teacher.gradeBand];
+// Plan Visit modal
+function openPlanVisitModal() {
+  visitForm = { visitDate: toDateStr(new Date()), coach: state.currentCoach, status: 'planned' };
+  openModal(visitModalHTML());
+}
+function openScheduleVisit(teacherId) {
+  const t = state.teachers.find(x => x.id == teacherId);
+  visitForm = {
+    teacherId, teacherName: t?.name || '',
+    visitDate: toDateStr(new Date()),
+    coach: state.currentCoach,
+    status: 'planned'
+  };
+  openModal(visitModalHTML());
+}
+function editVisit(id) {
+  const v = state.visits.find(x => x.id == id);
+  visitForm = { ...v };
+  openModal(visitModalHTML(true));
+}
+function visitModalHTML(isEdit) {
+  const f = visitForm;
+  return `
+    <div class="modal-title">${isEdit ? 'Edit Visit' : 'Plan a Visit'}</div>
+    <div class="form-group">
+      <label class="form-label">Teacher *</label>
+      <select class="form-input" id="vf-teacher" onchange="visitForm.teacherId=this.value;visitForm.teacherName=this.options[this.selectedIndex].text">
+        <option value="">Select…</option>
+        ${state.teachers.map(t => `<option value="${t.id}" ${f.teacherId==t.id?'selected':''}>${t.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input class="form-input" type="date" id="vf-date" value="${f.visitDate||toDateStr(new Date())}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input class="form-input" type="time" id="vf-time" value="${f.visitTime||''}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Coach</label>
+      <select class="form-input" id="vf-coach">
+        <option ${f.coach==='Presley'?'selected':''}>Presley</option>
+        <option ${f.coach==='Rickett'?'selected':''}>Rickett</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input class="form-input" id="vf-notes" value="${f.notes||''}" placeholder="Optional notes…">
+    </div>
+    ${isEdit ? `
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="vf-status">
+        <option ${f.status==='planned'?'selected':''}>planned</option>
+        <option ${f.status==='done'?'selected':''}>done</option>
+        <option ${f.status==='cancelled'?'selected':''}>cancelled</option>
+      </select>
+    </div>` : ''}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary btn-full" onclick="saveVisit(${isEdit?`'${f.id}'`:'null'})">${isEdit ? 'Save Changes' : 'Plan Visit'}</button>
+      ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="deleteVisit('${f.id}')">Delete</button>` : ''}
+    </div>
+  `;
+}
 
-            return `
-                <div class="bg-white rounded-2xl shadow-xl p-6">
-                    <button id="backToTeachers" class="mb-4 text-indigo-600 font-semibold hover:underline">
-                        ← Back to All Teachers
-                    </button>
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">${teacher.name}</h2>
-                    <div class="mb-6 text-gray-600 space-y-1">
-                        <div><strong>Grade Band:</strong> ${teacher.gradeBand}</div>
-                        <div><strong>Primary Coach:</strong> ${teacher.primaryCoach}</div>
-                        <div><strong>Current Goal:</strong> ${teacher.currentGoal || 1}</div>
-                    </div>
+async function saveVisit(editId) {
+  const teacherId = document.getElementById('vf-teacher').value;
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!teacherId) { alert('Select a teacher'); return; }
+  const data = {
+    id: editId || Date.now().toString(),
+    teacherId,
+    teacherName: t?.name || '',
+    coach: document.getElementById('vf-coach').value,
+    visitDate: document.getElementById('vf-date').value,
+    visitTime: document.getElementById('vf-time').value,
+    notes: document.getElementById('vf-notes').value,
+    status: editId ? document.getElementById('vf-status').value : 'planned',
+    createdAt: editId ? visitForm.createdAt : new Date().toISOString()
+  };
+  if (editId) {
+    const idx = state.visits.findIndex(v => v.id == editId);
+    state.visits[idx] = data;
+    if (USE_SHEETS) { await apiPost('updateVisit', data); showSync('✓ Saved'); }
+  } else {
+    state.visits.push(data);
+    if (USE_SHEETS) { await apiPost('saveVisit', data); showSync('✓ Saved'); }
+  }
+  localSave();
+  closeModalDirect();
+  render();
+}
 
-                    <h3 class="text-xl font-bold text-gray-800 mb-3">Observation History</h3>
-                    ${obs.length === 0 ? `
-                        <p class="text-gray-500">No observations yet</p>
-                    ` : `
-                        <div class="space-y-3">
-                            ${obs.map(o => {
-                                const goal = goals.find(g => g.id === o.goalNumber);
-                                return `
-                                    <div class="bg-gray-50 border-l-4 border-indigo-500 rounded-lg p-4">
-                                        <div class="text-indigo-600 font-semibold text-sm mb-2">
-                                            ${new Date(o.date).toLocaleDateString()} • ${goal?.emoji} Goal ${o.goalNumber} • ${o.coach}
-                                        </div>
-                                        <div class="text-sm text-gray-600 mb-2">
-                                            <strong>Impression:</strong> ${o.impression}
-                                        </div>
-                                        <div class="text-sm text-gray-700 mt-2">
-                                            <strong>🌟 Glow:</strong> ${o.glow}
-                                        </div>
-                                        <div class="text-sm text-gray-700 mt-1">
-                                            <strong>🎯 Grow:</strong> ${o.grow}
-                                        </div>
-                                        ${o.coachNotes ? `
-                                            <div class="text-sm text-gray-500 italic mt-2">
-                                                <strong>Coach notes:</strong> ${o.coachNotes}
-                                            </div>
-                                        ` : ''}
-                                        ${o.followUpNeeded ? `
-                                            <div class="mt-2 inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">
-                                                ⚠️ Follow-up needed
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    `}
-                </div>
-            `;
-        }
+async function deleteVisit(id) {
+  if (!confirm('Delete this visit?')) return;
+  state.visits = state.visits.filter(v => v.id != id);
+  if (USE_SHEETS) { await apiPost('deleteVisit', null); showSync('✓ Deleted'); }
+  localSave();
+  closeModalDirect();
+  render();
+}
 
-        function renderObserveForm() {
-            const selectedTeacher = state.selectedTeacher ? state.teachers.find(t => t.id === state.selectedTeacher) : null;
-            const goals = selectedTeacher ? GOALS[selectedTeacher.gradeBand] : [];
-            const currentGoalNum = selectedTeacher?.currentGoal || 1;
-            const currentGoal = goals.find(g => g.id === currentGoalNum);
+async function markVisitDone(id) {
+  const v = state.visits.find(x => x.id == id);
+  if (!v) return;
+  v.status = 'done';
+  if (USE_SHEETS) { await apiPost('updateVisit', v); }
+  localSave();
+  render();
+}
 
-            return `
-                <div class="bg-white rounded-2xl shadow-xl p-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6">New Observation</h2>
-                    <form id="observationForm" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher *</label>
-                                <select id="obsTeacher" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
-                                    <option value="">Select teacher...</option>
-                                    ${state.teachers.map(t => `
-                                        <option value="${t.id}" ${state.selectedTeacher === t.id ? 'selected' : ''}>
-                                            ${t.name} (${t.gradeBand})
-                                        </option>
-                                    `).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
-                                <input type="date" id="obsDate" required value="${new Date().toISOString().split('T')[0]}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none">
-                            </div>
-                        </div>
+// ══════════════════════════════════════════════════════
+// OBSERVATION ACTIONS
+// ══════════════════════════════════════════════════════
+function selectObsTeacher(id) {
+  state.selectedTeacherId = id;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  render();
+}
 
-                        ${selectedTeacher && currentGoal ? `
-                            <div class="bg-indigo-50 rounded-lg p-4">
-                                <h3 class="font-semibold text-gray-800 mb-3">
-                                    ${currentGoal.emoji} Goal ${currentGoalNum}: ${currentGoal.name}
-                                </h3>
-                                <div class="space-y-2" id="lookForsContainer">
-                                    ${currentGoal.lookFors.map((lf, idx) => `
-                                        <div class="flex items-start gap-3 bg-white p-3 rounded">
-                                            <span class="text-sm text-gray-700 flex-1">${lf}</span>
-                                            <div class="flex gap-1 flex-shrink-0">
-                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="Yes">
-                                                    Yes
-                                                </button>
-                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="Partial">
-                                                    Partial
-                                                </button>
-                                                <button type="button" class="look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600" data-index="${idx}" data-value="No">
-                                                    No
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
+function setLookFor(idx, val) {
+  if (!obsForm.lookFors) obsForm.lookFors = {};
+  obsForm.lookFors[idx] = val;
+  render();
+}
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Overall Impression</label>
-                                <div class="flex gap-2 flex-wrap">
-                                    ${['Strong start', 'On track', 'Support needed'].map(imp => `
-                                        <button type="button" class="impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-gray-100 text-gray-600" data-value="${imp}">
-                                            ${imp}
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            </div>
+function setImpression(val) {
+  obsForm.impression = val;
+  render();
+}
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">🌟 Glow (what worked) *</label>
-                                <textarea id="obsGlow" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="What did you notice working well?"></textarea>
-                            </div>
+function quickObserve(teacherId) {
+  state.selectedTeacherId = teacherId;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  switchTab('observe');
+}
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">🎯 Grow (tiny next step) *</label>
-                                <textarea id="obsGrow" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="One small, actionable thing to try"></textarea>
-                            </div>
+async function submitObservation() {
+  const glow = document.getElementById('obsGlow')?.value || obsForm.glow || '';
+  const grow = document.getElementById('obsGrow')?.value || obsForm.grow || '';
+  if (!state.selectedTeacherId || !glow || !grow) {
+    alert('Please fill in the teacher, glow, and grow fields.'); return;
+  }
+  const teacher = state.teachers.find(t => t.id == state.selectedTeacherId);
+  const goals = GOALS[teacher.gradeBand] || [];
+  const goalNum = parseInt(teacher.currentGoal || 1);
+  const goal = goals.find(g => g.id === goalNum);
 
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Notes (private, for you and Rickett)</label>
-                                <textarea id="obsNotes" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none" rows="2" placeholder="Internal notes, patterns, follow-up reminders..."></textarea>
-                            </div>
+  const obs = {
+    id: Date.now().toString(),
+    teacherId: teacher.id,
+    teacherName: teacher.name,
+    coach: state.currentCoach,
+    date: document.getElementById('obsDate')?.value || obsForm.date || toDateStr(new Date()),
+    goalNumber: goalNum,
+    lookForResponses: obsForm.lookFors || {},
+    impression: obsForm.impression || 'On track',
+    glow, grow,
+    coachNotes: document.getElementById('obsCoachNotes')?.value || obsForm.coachNotes || '',
+    followUpNeeded: document.getElementById('followUp')?.checked || obsForm.followUpNeeded || false,
+    createdAt: new Date().toISOString()
+  };
 
-                            <div class="flex items-center gap-3">
-                                <input type="checkbox" id="obsFollowUp" class="w-5 h-5 text-indigo-600">
-                                <label for="obsFollowUp" class="text-sm font-semibold text-gray-700">
-                                    🚨 Flag for immediate follow-up
-                                </label>
-                            </div>
+  state.observations.push(obs);
+  if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
+  localSave();
 
-                            <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 rounded-lg shadow-lg hover:shadow-xl transition-all">
-                                Save & Generate Email
-                            </button>
-                        ` : `
-                            <div class="text-center py-8 text-gray-500">
-                                <p>Select a teacher to begin observation</p>
-                            </div>
-                        `}
-                    </form>
-                </div>
-            `;
-        }
+  // Email preview
+  const emailPreview = `📧 EMAIL TO: ${teacher.name}${teacher.email ? ' <'+teacher.email+'>' : ''}
 
-        function renderAnalytics() {
-            const goalCounts = {};
-            state.observations.forEach(o => {
-                const key = `Goal ${o.goalNumber}`;
-                goalCounts[key] = (goalCounts[key] || 0) + 1;
-            });
+Subject: Quick Visit — ${fmtDate(obs.date)}
 
-            const sortedGoals = Object.entries(goalCounts).sort((a, b) => b[1] - a[1]);
+Hi ${teacher.name.split(' ').pop()},
 
-            const needsAttention = state.teachers.filter(t => {
-                const teacherObs = state.observations.filter(o => o.teacherId === t.id);
-                if (teacherObs.length === 0) return true;
-                const lastObs = teacherObs[teacherObs.length - 1];
-                const daysSince = (Date.now() - new Date(lastObs.date).getTime()) / 86400000;
-                return daysSince > 14;
-            });
+Thanks for letting me pop in today!
 
-            return `
-                <div class="space-y-6">
-                    <div class="bg-white rounded-2xl shadow-xl p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Cohort Patterns</h2>
-                        ${state.observations.length < 5 ? `
-                            <div class="text-center py-12 text-gray-500">
-                                <div class="text-6xl mb-4">📈</div>
-                                <p>Conduct at least 5 observations to see meaningful patterns</p>
-                            </div>
-                        ` : `
-                            <div class="space-y-4">
-                                ${sortedGoals.slice(0, 5).map(([goal, count]) => `
-                                    <div class="border-l-4 border-indigo-500 bg-gray-50 rounded-lg p-4">
-                                        <div class="flex items-center justify-between">
-                                            <div class="font-semibold text-gray-800">${goal}</div>
-                                            <div class="text-2xl font-bold text-indigo-600">${count}</div>
-                                        </div>
-                                        <div class="text-sm text-gray-600 mt-1">${count} observation${count !== 1 ? 's' : ''}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `}
-                    </div>
+🌟 What I noticed working well:
+${glow}
 
-                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-6 border-l-4 border-yellow-400">
-                        <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                            ✨ AI Insight
-                        </h3>
-                        <p class="text-gray-700 leading-relaxed">
-                            ${state.observations.length < 10 
-                                ? "Continue building your observation baseline. After 10+ visits, you'll start seeing clear patterns across your cohort."
-                                : `You're building strong momentum! ${sortedGoals[0] ? `Your most common focus is ${sortedGoals[0][0]}.` : ''} Consider professional development around emerging themes to support multiple teachers simultaneously.`
-                            }
-                        </p>
-                    </div>
+🎯 One tiny thing to try next time:
+${grow}
 
-                    <div class="bg-white rounded-2xl shadow-xl p-6">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Teachers Needing Attention</h2>
-                        ${needsAttention.length === 0 ? `
-                            <p class="text-gray-600">All teachers have been observed within the last 2 weeks. Great work! 🎉</p>
-                        ` : `
-                            <div class="space-y-2">
-                                ${needsAttention.map(t => `
-                                    <div class="bg-orange-50 border-l-4 border-orange-400 p-3 rounded">
-                                        <div class="font-semibold text-gray-800">${t.name}</div>
-                                        <div class="text-sm text-gray-600">${t.gradeBand} • ${t.primaryCoach}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
+📍 You're currently working on:
+${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalNum}
 
-        // Event Listeners
-        function attachEventListeners() {
-            // Tab switching
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    state.activeTab = e.currentTarget.dataset.tab;
-                    state.viewingTeacher = null;
-                    render();
-                });
-            });
+Keep up the great work!
 
-            // Coach selector
-            const coachSelect = document.getElementById('coachSelect');
-            if (coachSelect) {
-                coachSelect.addEventListener('change', (e) => {
-                    state.currentCoach = e.target.value;
-                    saveData();
-                });
-            }
+— ${state.currentCoach}`;
 
-            // Add teacher button
-            const showAddBtn = document.getElementById('showAddTeacher');
-            if (showAddBtn) {
-                showAddBtn.addEventListener('click', () => {
-                    state.showAddTeacher = true;
-                    render();
-                });
-            }
+  alert(emailPreview);
 
-            // Cancel add teacher
-            const cancelAddBtn = document.getElementById('cancelAddTeacher');
-            if (cancelAddBtn) {
-                cancelAddBtn.addEventListener('click', () => {
-                    state.showAddTeacher = false;
-                    render();
-                });
-            }
+  state.selectedTeacherId = null;
+  obsForm = {};
+  switchTab('dashboard');
+}
 
-            // Add teacher form
-            const addTeacherForm = document.getElementById('addTeacherForm');
-            if (addTeacherForm) {
-                addTeacherForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const teacher = {
-                        id: Date.now().toString(),
-                        name: document.getElementById('teacherName').value,
-                        gradeBand: document.getElementById('teacherGradeBand').value,
-                        primaryCoach: document.getElementById('teacherCoach').value,
-                        currentGoal: 1,
-                        status: 'active',
-                        createdAt: new Date().toISOString()
-                    };
-                    state.teachers.push(teacher);
-                    state.showAddTeacher = false;
-                    saveData();
-                    render();
-                });
-            }
+async function advanceGoal() {
+  if (!state.selectedTeacherId) return;
+  advanceGoalFor(state.selectedTeacherId);
+}
 
-            // Teacher selection for observation
-            const obsTeacher = document.getElementById('obsTeacher');
-            if (obsTeacher) {
-                obsTeacher.addEventListener('change', (e) => {
-                    state.selectedTeacher = e.target.value;
-                    render();
-                });
-            }
+async function advanceGoalFor(teacherId) {
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  const goals = GOALS[t.gradeBand] || [];
+  const next = parseInt(t.currentGoal || 1) + 1;
+  if (next > goals.length) { alert('Teacher has completed all goals! You can add custom goals beyond Goal 6.'); return; }
+  if (!confirm(`Advance ${t.name} to Goal ${next}?`)) return;
+  t.currentGoal = next;
+  if (USE_SHEETS) { await apiPost('updateTeacher', t); showSync('✓ Goal advanced'); }
+  localSave();
+  render();
+}
 
-            // Look-for buttons
-            document.querySelectorAll('.look-for-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = e.target.dataset.index;
-                    const value = e.target.dataset.value;
-                    
-                    // Reset all buttons in this row
-                    document.querySelectorAll(`[data-index="${index}"]`).forEach(b => {
-                        b.className = 'look-for-btn px-3 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-600';
-                    });
-                    
-                    // Highlight selected
-                    let bgColor = 'bg-gray-200 text-gray-600';
-                    if (value === 'Yes') bgColor = 'bg-green-500 text-white';
-                    else if (value === 'Partial') bgColor = 'bg-yellow-500 text-white';
-                    else if (value === 'No') bgColor = 'bg-red-500 text-white';
-                    
-                    e.target.className = `look-for-btn px-3 py-1 rounded text-xs font-semibold ${bgColor}`;
-                    e.target.dataset.selected = 'true';
-                });
-            });
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function switchTab(tab) {
+  state.activeTab = tab;
+  state.viewingTeacher = null;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  render();
+}
 
-            // Impression buttons
-            document.querySelectorAll('.impression-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.impression-btn').forEach(b => {
-                        b.className = 'impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-gray-100 text-gray-600';
-                    });
-                    e.target.className = 'impression-btn flex-1 min-w-[120px] px-4 py-3 rounded-lg font-semibold bg-indigo-600 text-white';
-                    e.target.dataset.selected = 'true';
-                });
-            });
+function viewTeacher(id) {
+  state.viewingTeacher = id;
+  render();
+}
 
-            // Observation form submission
-            const obsForm = document.getElementById('observationForm');
-            if (obsForm) {
-                obsForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    
-                    const teacherId = document.getElementById('obsTeacher').value;
-                    const teacher = state.teachers.find(t => t.id === teacherId);
-                    
-                    // Collect look-for responses
-                    const lookForResponses = {};
-                    document.querySelectorAll('.look-for-btn[data-selected="true"]').forEach(btn => {
-                        lookForResponses[btn.dataset.index] = btn.dataset.value;
-                    });
-                    
-                    // Get impression
-                    const impressionBtn = document.querySelector('.impression-btn[data-selected="true"]');
-                    const impression = impressionBtn ? impressionBtn.dataset.value : 'On track';
-                    
-                    const observation = {
-                        id: Date.now().toString(),
-                        teacherId,
-                        date: document.getElementById('obsDate').value,
-                        coach: state.currentCoach,
-                        goalNumber: teacher.currentGoal || 1,
-                        lookForResponses,
-                        impression,
-                        glow: document.getElementById('obsGlow').value,
-                        grow: document.getElementById('obsGrow').value,
-                        coachNotes: document.getElementById('obsNotes').value,
-                        followUpNeeded: document.getElementById('obsFollowUp').checked,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    state.observations.push(observation);
-                    saveData();
-                    
-                    // Generate email preview
-                    const goals = GOALS[teacher.gradeBand];
-                    const goal = goals.find(g => g.id === observation.goalNumber);
-                    
-                    const emailText = `📧 EMAIL PREVIEW\n\n` +
-                        `To: ${teacher.name}\n\n` +
-                        `✨ Quick Visit Summary - ${new Date(observation.date).toLocaleDateString()}\n\n` +
-                        `🌟 What worked:\n${observation.glow}\n\n` +
-                        `🎯 Tiny next step:\n${observation.grow}\n\n` +
-                        `📍 Your current focus:\n${goal.emoji} Goal ${goal.id} - ${goal.name}\n\n` +
-                        `Keep up the great work!\n\n` +
-                        `- Coach ${state.currentCoach}`;
-                    
-                    alert(emailText);
-                    
-                    state.selectedTeacher = null;
-                    state.activeTab = 'dashboard';
-                    render();
-                });
-            }
+function toDateStr(d) {
+  return d.toISOString().split('T')[0];
+}
 
-            // Teacher card clicks
-            document.querySelectorAll('.teacher-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    state.viewingTeacher = e.currentTarget.dataset.teacherId;
-                    render();
-                });
-            });
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
-            // Back to teachers button
-            const backBtn = document.getElementById('backToTeachers');
-            if (backBtn) {
-                backBtn.addEventListener('click', () => {
-                    state.viewingTeacher = null;
-                    render();
-                });
-            }
-        }
+function daysSince(dateStr) {
+  if (!dateStr) return 999;
+  return (Date.now() - new Date(dateStr + 'T12:00:00').getTime()) / 86400000;
+}
 
-        // Initialize app
-        function init() {
-            loadData();
-            render();
-        }
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.getElementById('coachSelect').value = state.currentCoach;
+document.getElementById('coachSelect').addEventListener('change', e => {
+  state.currentCoach = e.target.value;
+  localStorage.setItem('currentCoach', e.target.value);
+});
 
-        // Start the app
-        init();
-    </script>
+localLoad();
+render();
+syncFromSheets();
+
+// Auto-refresh every 3 minutes if using Sheets
+if (USE_SHEETS) {
+  setInterval(syncFromSheets, 180000);
+}
+</script>
 </body>
 </html>
