@@ -712,18 +712,29 @@ function localLoad() {
 function normalizeTime(val) {
   if (!val && val !== 0) return '';
   const s = String(val).trim();
-  // Sheets serial number: a decimal like 0.3264 (fraction of 24h day)
+  // ISO date string from Sheets e.g. "1899-12-30T08:30:00.000Z"
+  if (s.includes('T') && s.includes('Z')) {
+    const d = new Date(s);
+    const h = d.getUTCHours();
+    const m = d.getUTCMinutes();
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+  // Numeric fraction e.g. 0.3333 (8:00 AM)
   const num = parseFloat(s);
   if (!isNaN(num) && s.indexOf(':') === -1) {
     const totalMins = Math.round(num * 24 * 60);
     const h = Math.floor(totalMins / 60) % 24;
     const m = totalMins % 60;
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   }
-  // Already HH:MM or H:MM
+  // Plain HH:MM or H:MM string — only use first two parts
   const parts = s.split(':');
   if (parts.length >= 2) {
-    return `${String(parseInt(parts[0])).padStart(2,'0')}:${String(parseInt(parts[1])).padStart(2,'0')}`;
+    const h = parseInt(parts[0]);
+    const m = parseInt(parts[1]);
+    if (!isNaN(h) && !isNaN(m)) {
+      return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
   }
   return s;
 }
