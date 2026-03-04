@@ -708,6 +708,49 @@ function localLoad() {
   } catch(e) {}
 }
 
+// Normalize time field — handles Google Sheets serial decimals, H:MM, HH:MM, 12h strings
+function normalizeTime(val) {
+  if (!val && val !== 0) return '';
+  const s = String(val).trim();
+  // Sheets serial number: a decimal like 0.3264 (fraction of 24h day)
+  const num = parseFloat(s);
+  if (!isNaN(num) && s.indexOf(':') === -1) {
+    const totalMins = Math.round(num * 24 * 60);
+    const h = Math.floor(totalMins / 60) % 24;
+    const m = totalMins % 60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+  // Already HH:MM or H:MM
+  const parts = s.split(':');
+  if (parts.length >= 2) {
+    return `${String(parseInt(parts[0])).padStart(2,'0')}:${String(parseInt(parts[1])).padStart(2,'0')}`;
+  }
+  return s;
+}
+
+function normalizeData() {
+  // Fix availability times on teachers
+  state.teachers.forEach(t => {
+    t.availabilityStart = normalizeTime(t.availabilityStart);
+    t.availabilityEnd   = normalizeTime(t.availabilityEnd);
+  });
+
+  // Build name→id map from teachers
+  const nameToId = {};
+  state.teachers.forEach(t => {
+    nameToId[String(t.name).trim().toLowerCase()] = t.id;
+  });
+
+  // Fix observations where teacherId doesn't match any teacher — link by teacherName
+  const validIds = new Set(state.teachers.map(t => String(t.id)));
+  state.observations.forEach(o => {
+    if (!validIds.has(String(o.teacherId))) {
+      const key = String(o.teacherName || '').trim().toLowerCase();
+      if (nameToId[key]) o.teacherId = nameToId[key];
+    }
+  });
+}
+
 async function syncFromSheets() {
   if (!USE_SHEETS) {
     document.getElementById('syncStatus').textContent = '● local mode';
@@ -720,6 +763,7 @@ async function syncFromSheets() {
     state.teachers = data.teachers || [];
     state.observations = data.observations || [];
     state.visits = data.visits || [];
+    normalizeData();
     localSave();
     state.lastSync = new Date();
     document.getElementById('syncStatus').textContent = '● live · ' + state.lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
