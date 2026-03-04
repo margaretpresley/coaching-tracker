@@ -518,6 +518,28 @@
     .closing-chip .cc-meta { font-size: 12px; color: #c2410c; font-weight: 600; }
     .closing-chip .cc-time { font-size: 13px; color: #ea580c; font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
 
+
+    /* ── Privacy toggle ── */
+    .privacy-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: 99px; border: 2px solid var(--border);
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      background: #fff; cursor: pointer; transition: all .2s; color: var(--body);
+      margin-bottom: 14px;
+    }
+    .privacy-btn.on { background: #1e293b; border-color: #1e293b; color: #fff; }
+
+    /* ── Collapsible card ── */
+    .collapsible-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .collapsible-arrow {
+      font-size: 13px; color: var(--muted); transition: transform .2s;
+      font-family: 'Nunito', sans-serif; font-weight: 800;
+    }
+    .collapsible-arrow.open { transform: rotate(180deg); }
+
   </style>
 </head>
 <body>
@@ -665,6 +687,9 @@ const GOALS = {
 let obsForm = {};
 let visitForm = {};
 let teacherForm = {};
+let privacyMode = false;
+let activityExpanded = false;
+let alertsExpanded = false;
 
 // ══════════════════════════════════════════════════════
 // API / STORAGE
@@ -850,11 +875,21 @@ function render() {
 function renderDashboard() {
   const week = state.observations.filter(o => daysSince(o.date) <= 7).length;
   const flags = state.observations.filter(o => o.followUpNeeded === true || o.followUpNeeded === 'TRUE').length;
-  const recent = [...state.observations].reverse().slice(0, 6);
-
+  const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
-
   const alertsHTML = renderAlerts();
+
+  const activityHTML = recent.length === 0
+    ? `<div class="empty"><div class="e-icon">📋</div><p>No observations yet.<br>Tap Observe to get started.</p></div>`
+    : recent.map(obs => {
+        const t = state.teachers.find(x => x.id == obs.teacherId);
+        return `<div class="feed-item">
+          <div class="meta">${fmtDate(obs.date)} · Goal ${obs.goalNumber} · ${obs.coach}</div>
+          <div class="title">${t ? t.name : 'Unknown Teacher'}</div>
+          <div class="imp">${obs.impression}</div>
+          ${obs.followUpNeeded === true || obs.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
+        </div>`;
+      }).join('');
 
   return `
     ${!USE_SHEETS ? configBanner() : ''}
@@ -877,7 +912,7 @@ function renderDashboard() {
     </div>
 
     ${availNow.length > 0 ? `
-    <div class="card" style="border-left:4px solid var(--green)">
+    <div class="card" style="border-left:4px solid var(--mint)">
       <div class="now-header">
         <div class="now-pulse"></div>
         ${availNow.length} teacher${availNow.length > 1 ? 's' : ''} available right now
@@ -895,18 +930,11 @@ function renderDashboard() {
     </div>` : ''}
 
     <div class="card">
-      <div class="card-title">Recent Activity</div>
-      ${recent.length === 0 ? `<div class="empty"><div class="e-icon">📋</div><p>No observations yet.<br>Tap Observe to get started.</p></div>` :
-        recent.map(obs => {
-          const t = state.teachers.find(x => x.id == obs.teacherId);
-          return `<div class="feed-item">
-            <div class="meta">${fmtDate(obs.date)} · Goal ${obs.goalNumber} · ${obs.coach}</div>
-            <div class="title">${t ? t.name : 'Unknown Teacher'}</div>
-            <div class="imp">${obs.impression}</div>
-            ${obs.followUpNeeded === true || obs.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
-          </div>`;
-        }).join('')
-      }
+      <div class="collapsible-header" onclick="activityExpanded=!activityExpanded;render()">
+        <div class="card-title" style="margin-bottom:0">Recent Activity</div>
+        <span class="collapsible-arrow ${activityExpanded ? 'open' : ''}">▼</span>
+      </div>
+      ${activityExpanded ? `<div style="margin-top:14px">${activityHTML}</div>` : `<div style="font-size:13px;color:var(--muted);margin-top:8px">${recent.length} recent observation${recent.length !== 1 ? 's' : ''} — tap to expand</div>`}
     </div>
   `;
 }
@@ -1255,6 +1283,14 @@ function renderTeacherDetail(id) {
 
 // ── ANALYTICS ──────────────────────────────────────────
 function renderAnalytics() {
+  // Build anonymized name map for privacy mode
+  const nameMap = {};
+  if (privacyMode) {
+    const sorted = [...state.teachers].sort((a,b) => a.name.localeCompare(b.name));
+    sorted.forEach((t, i) => { nameMap[t.id] = 'Teacher ' + String.fromCharCode(65 + i); });
+  }
+  const displayName = (id, fallback) => privacyMode ? (nameMap[id] || 'Teacher ?') : (fallback || 'Unknown');
+
   const total = state.observations.length;
   const goalCounts = {};
   state.observations.forEach(o => {
@@ -1281,6 +1317,13 @@ function renderAnalytics() {
     : `Strong dataset! ${sorted[0] ? sorted[0][0]+' dominates ('+sorted[0][1]+' visits).' : ''} ${noVisit14.length > 0 ? `${noVisit14.length} teacher${noVisit14.length>1?'s':''} need attention.` : 'All teachers observed recently. 🎉'}`;
 
   return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">Overview</div>
+      <button class="privacy-btn ${privacyMode ? 'on' : ''}" onclick="privacyMode=!privacyMode;render()">
+        ${privacyMode ? '🔒 Names hidden' : '👁 Hide names'}
+      </button>
+    </div>
+
     <div class="stats-row">
       <div class="stat-chip chip-sky"><div class="val">${total}</div><div class="lbl">Total Obs</div></div>
       <div class="stat-chip chip-sun"><div class="val">${Object.keys(coachCounts).length ? Math.max(...Object.values(coachCounts)) : 0}</div><div class="lbl">Most by 1 Coach</div></div>
@@ -1312,8 +1355,8 @@ function renderAnalytics() {
         ? `<div class="empty" style="padding:20px 0"><p>No data yet.</p></div>`
         : Object.entries(coachCounts).map(([coach, count]) => `
           <div class="bar-row">
-            <div class="bar-label">${coach}</div>
-            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/total*100)}%;background:var(--indigo)"></div></div>
+            <div class="bar-label">${privacyMode ? 'Coach' : coach}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/total*100)}%;background:var(--sky2)"></div></div>
             <div class="bar-count">${count}</div>
           </div>
         `).join('')
@@ -1327,10 +1370,10 @@ function renderAnalytics() {
         : noVisit14.map(t => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
             <div>
-              <div style="font-size:13px;font-weight:600">${t.name}</div>
-              <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · ${t.primaryCoach}</div>
+              <div style="font-size:13px;font-weight:600">${displayName(t.id, t.name)}</div>
+              <div style="font-size:11px;color:var(--muted)">${t.gradeBand}${privacyMode ? '' : ' · ' + t.primaryCoach}</div>
             </div>
-            <button class="btn btn-sm btn-primary" onclick="quickObserve('${t.id}')">Observe</button>
+            ${!privacyMode ? `<button class="btn btn-sm btn-primary" onclick="quickObserve('${t.id}')">Observe</button>` : ''}
           </div>
         `).join('')
       }
@@ -2013,10 +2056,9 @@ function computeAlerts() {
 }
 
 function renderAlerts() {
-  // Only show if there's any data to work with
   if (state.teachers.length === 0) return '';
-
   const alerts = computeAlerts();
+  const SHOW = 3;
 
   if (alerts.length === 0) {
     return `<div class="alerts-empty">
@@ -2031,13 +2073,18 @@ function renderAlerts() {
   const typeClass = { overdue:'alert-overdue', stuck:'alert-stuck', decline:'alert-decline', lookfor:'alert-lookfor', schedule:'alert-schedule', flag:'alert-flag' };
   const typeIcon  = { overdue:'⏰', stuck:'🔄', decline:'📉', lookfor:'🔍', schedule:'🗓', flag:'🚨' };
 
+  const visible = alertsExpanded ? alerts : alerts.slice(0, SHOW);
+  const hidden  = alerts.length - SHOW;
+
   return `
     <div class="card" style="padding:16px 18px">
-      <div class="card-title" style="margin-bottom:12px">
-        🧠 AI Insights
-        <span class="alert-badge">${alerts.length}</span>
+      <div class="collapsible-header" style="margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">
+          🧠 Alerts
+          <span class="alert-badge">${alerts.length}</span>
+        </div>
       </div>
-      ${alerts.map(a => `
+      ${visible.map(a => `
         <div class="alert-card ${typeClass[a.type]}" onclick="${a.onclick}">
           <div class="alert-icon">${typeIcon[a.type]}</div>
           <div class="alert-body">
@@ -2047,6 +2094,12 @@ function renderAlerts() {
           </div>
         </div>
       `).join('')}
+      ${!alertsExpanded && hidden > 0
+        ? `<button class="btn btn-secondary btn-sm btn-full" style="margin-top:4px" onclick="alertsExpanded=true;render()">Show ${hidden} more alert${hidden>1?'s':''} ▼</button>`
+        : alerts.length > SHOW
+          ? `<button class="btn btn-ghost btn-sm btn-full" style="margin-top:4px" onclick="alertsExpanded=false;render()">Show less ▲</button>`
+          : ''
+      }
     </div>
   `;
 }
