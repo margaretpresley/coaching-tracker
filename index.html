@@ -1591,6 +1591,30 @@ async function advanceGoalFor(teacherId) {
 // ══════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════
+
+function quickObserve(teacherId) {
+  state.selectedTeacherId = teacherId;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  switchTab('observe');
+}
+
+function selectObsTeacher(id) {
+  state.selectedTeacherId = id;
+  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
+  render();
+}
+
+function setLookFor(idx, val) {
+  if (!obsForm.lookFors) obsForm.lookFors = {};
+  obsForm.lookFors[idx] = val;
+  render();
+}
+
+function setImpression(val) {
+  obsForm.impression = val;
+  render();
+}
+
 function switchTab(tab) {
   state.activeTab = tab;
   state.viewingTeacher = null;
