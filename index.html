@@ -340,23 +340,6 @@
     .avail-chip .ac-name { font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; }
     .avail-chip .ac-meta { font-size: 12px; color: var(--body); font-weight: 600; }
     .avail-chip .ac-time { font-size: 13px; color: var(--mint2); font-weight: 800; margin-left: auto; font-family: 'Nunito', sans-serif; }
-    .visit-row {
-      display: flex; align-items: center; gap: 12px;
-      background: #f8faff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
-      border: 1.5px solid #e0f2fe;
-    }
-    .visit-row .vr-time { font-size: 13px; color: var(--sky2); font-weight: 800; min-width: 60px; font-family: 'Nunito', sans-serif; }
-    .visit-row .vr-name { font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; }
-    .visit-row .vr-coach { font-size: 12px; color: var(--body); font-weight: 600; }
-    .visit-row .vr-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-    .visit-status {
-      font-size: 11px; font-weight: 800; padding: 4px 9px;
-      border-radius: 99px; text-transform: uppercase; letter-spacing: .4px;
-      font-family: 'Nunito', sans-serif;
-    }
-    .vs-planned   { background: #e0f2fe; color: #0369a1; }
-    .vs-done      { background: #d1fae5; color: #065f46; }
-    .vs-cancelled { background: #f1f5f9; color: #94a3b8; }
 
     /* ── Teacher detail ── */
     .obs-entry {
@@ -540,27 +523,6 @@
     }
     .collapsible-arrow.open { transform: rotate(180deg); }
 
-
-    /* ── Auto-schedule ── */
-    .sched-slot {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 0; border-bottom: 1px solid var(--border);
-    }
-    .sched-slot:last-child { border-bottom: none; }
-    .sched-time {
-      min-width: 72px; font-size: 13px; font-weight: 900;
-      font-family: 'Nunito', sans-serif; color: var(--sky2);
-    }
-    .sched-info { flex: 1; }
-    .sched-name { font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; }
-    .sched-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .sched-badge {
-      font-size: 10px; font-weight: 800; padding: 2px 7px;
-      border-radius: 99px; background: #fff7ed; color: #9a3412;
-    }
-    .sched-badge.urgent { background: #fff1f2; color: #9f1239; }
-    .sched-empty { text-align:center; padding: 28px 0; color: var(--muted); font-size:14px; }
-
   </style>
 </head>
 <body>
@@ -589,9 +551,6 @@
 <nav class="bottom-nav">
   <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
     <span class="icon">◎</span>Dashboard
-  </button>
-  <button class="nav-btn" data-tab="schedule" onclick="switchTab('schedule')">
-    <span class="icon">🗓</span>Schedule
   </button>
   <button class="nav-btn" data-tab="observe" onclick="switchTab('observe')">
     <span class="icon">✏️</span>Observe
@@ -624,8 +583,7 @@ const USE_SHEETS = true;
 // ══════════════════════════════════════════════════════
 let state = {
   teachers: [],
-  observations: [],
-  visits: [],
+  observations: []
   currentCoach: localStorage.getItem('currentCoach') || 'Presley',
   activeTab: 'dashboard',
   viewingTeacher: null,
@@ -706,7 +664,6 @@ const GOALS = {
 
 // temp state for forms
 let obsForm = {};
-let visitForm = {};
 let teacherForm = {};
 let privacyMode = false;
 let activityExpanded = false;
@@ -740,18 +697,12 @@ async function apiPost(action, data) {
 function localSave() {
   localStorage.setItem('mc_teachers', JSON.stringify(state.teachers));
   localStorage.setItem('mc_observations', JSON.stringify(state.observations));
-  localStorage.setItem('mc_visits', JSON.stringify(state.visits));
 }
 
 function localLoad() {
   try {
     const t = localStorage.getItem('mc_teachers');
-    const o = localStorage.getItem('mc_observations');
-    const v = localStorage.getItem('mc_visits');
-    if (t) state.teachers = JSON.parse(t);
-    if (o) state.observations = JSON.parse(o);
-    if (v) state.visits = JSON.parse(v);
-  } catch(e) {}
+    const o = localStorage.getItem('mc_observations'); catch(e) {}
 }
 
 // Normalize time field — handles Google Sheets serial decimals, H:MM, HH:MM, 12h strings
@@ -786,20 +737,6 @@ function normalizeTime(val) {
 }
 
 function normalizeData() {
-  // Fix any visits with bad times (from earlier bugs)
-  state.visits = state.visits.map(v => {
-    if (v.visitTime) {
-      // If time looks like a decimal fraction, convert it
-      const s = String(v.visitTime).trim();
-      if (s.indexOf(':') === -1) {
-        const num = parseFloat(s);
-        if (!isNaN(num)) {
-          const totalMins = Math.round(num * 24 * 60);
-          const h = Math.floor(totalMins / 60) % 24;
-          const m = totalMins % 60;
-          v.visitTime = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-        }
-      }
     }
     return v;
   });
@@ -836,9 +773,7 @@ async function syncFromSheets() {
     if (data.error) throw new Error(data.error);
     state.teachers = data.teachers || [];
     state.observations = data.observations || [];
-    state.visits = data.visits || [];
     normalizeData();
-    deduplicateSilent();
     localSave();
     state.lastSync = new Date();
     document.getElementById('syncStatus').textContent = '● live · ' + state.lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -903,7 +838,7 @@ function render() {
   }
   switch(state.activeTab) {
     case 'dashboard': c.innerHTML = renderDashboard(); break;
-    case 'schedule':  c.innerHTML = renderSchedule();  break;
+
     case 'observe':   c.innerHTML = renderObserve();   break;
     case 'teachers':  c.innerHTML = renderTeachers();  break;
     case 'analytics': c.innerHTML = renderAnalytics(); break;
@@ -987,335 +922,6 @@ function configBanner() {
 
 // ── SCHEDULE ───────────────────────────────────────────
 
-// ── AUTO-SCHEDULE ───────────────────────────────────────────────────────────
-function generateAutoSchedule() {
-  const MAX_OBS   = 5;
-  const OBS_MINS  = 10;
-  const BUFFER    = 5;
-  const SLOT_MINS = OBS_MINS + BUFFER; // 15 min per slot
-
-  const coach = state.currentCoach;
-  const today = new Date();
-  const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][today.getDay()];
-
-  // Filter to this coach's teachers only, available today
-  const myTeachers = state.teachers.filter(t =>
-    t.primaryCoach === coach &&
-    t.availabilityStart && t.availabilityEnd &&
-    (t.availableDays || '').includes(dayName)
-  );
-
-  if (myTeachers.length === 0) {
-    openModal(`
-      <div class="card-title">Auto-Schedule</div>
-      <div class="sched-empty">
-        <div style="font-size:32px;margin-bottom:10px">📅</div>
-        <div>No teachers with availability set for today (${dayName}).</div>
-        <div style="font-size:12px;margin-top:6px;color:var(--muted)">Check that teachers have days configured in their profiles.</div>
-      </div>
-      <button class="btn btn-secondary btn-full" style="margin-top:16px" onclick="closeModalDirect()">Close</button>
-    `);
-    return;
-  }
-
-  // Score each teacher: urgent=0, overdue=1, needs=2, ok=3; secondary = days since last obs
-  const scored = myTeachers.map(t => {
-    const { level } = getTeacherPriority(t);
-    const priorityScore = { urgent: 0, overdue: 1, needs: 2 }[level] ?? 3;
-    const tObs = state.observations.filter(o => o.teacherId == t.id);
-    const lastObs = tObs.length
-      ? tObs.sort((a,b) => new Date(b.date)-new Date(a.date))[0]
-      : null;
-    const days = lastObs ? daysSince(lastObs.date) : 999;
-    return { t, priorityScore, days };
-  });
-  scored.sort((a,b) => a.priorityScore - b.priorityScore || b.days - a.days);
-
-  // Build slots — fit teachers into their windows, no overlap
-  // Convert HH:MM → minutes since midnight
-  const toMins = str => {
-    if (!str && str !== 0) return 0;
-    const s = String(str).trim();
-    // Numeric fraction from Sheets (e.g. 0.534 = 12:50 PM)
-    if (s.indexOf(':') === -1) {
-      const num = parseFloat(s);
-      if (!isNaN(num)) return Math.round(num * 24 * 60);
-      return 0;
-    }
-    const [h,m] = s.split(':').map(Number);
-    return h * 60 + m;
-  };
-  const fmtMins = mins => {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const hh = h % 12 || 12;
-    return `${hh}:${String(m).padStart(2,'0')} ${ampm}`;
-  };
-
-  const slots = [];
-  const usedWindows = []; // [{start, end}] — track placed slots to avoid overlap
-
-  for (const { t, priorityScore, days } of scored) {
-    if (slots.length >= MAX_OBS) break;
-
-    const winStart = toMins(t.availabilityStart);
-    const winEnd   = toMins(t.availabilityEnd);
-
-    // Find earliest gap in this teacher's window that doesn't overlap existing slots
-    let cursor = winStart;
-    while (cursor + OBS_MINS <= winEnd) {
-      const slotEnd = cursor + OBS_MINS;
-      const overlap = usedWindows.some(w => cursor < w.end + BUFFER && slotEnd > w.start);
-      if (!overlap) {
-        const { level } = getTeacherPriority(t);
-        slots.push({ teacher: t, startMins: cursor, endMins: slotEnd, level, days });
-        usedWindows.push({ start: cursor, end: slotEnd });
-        break;
-      }
-      cursor += SLOT_MINS;
-    }
-  }
-
-  // Sort slots chronologically for display
-  slots.sort((a,b) => a.startMins - b.startMins);
-
-  const levelLabel = { urgent: '🔴 Urgent', overdue: '🟠 Overdue', needs: '🟡 Needs attn' };
-  const levelClass = { urgent: 'urgent', overdue: '', needs: '' };
-
-  const slotsHTML = slots.length === 0
-    ? `<div class="sched-empty"><div style="font-size:32px;margin-bottom:10px">🤔</div><div>Couldn't fit any observations — windows may be too short for 10-min slots.</div></div>`
-    : slots.map(s => `
-        <div class="sched-slot">
-          <div class="sched-time">${fmtMins(s.startMins)}</div>
-          <div class="sched-info">
-            <div class="sched-name">${s.teacher.name}</div>
-            <div class="sched-meta">
-              ${s.teacher.gradeBand} · Goal ${s.teacher.currentGoal || 1} · Room ${s.teacher.room || '—'}
-              · ${s.days === 999 ? 'Never observed' : s.days + 'd since last obs'}
-            </div>
-          </div>
-          ${levelLabel[s.level] ? `<span class="sched-badge ${levelClass[s.level]}">${levelLabel[s.level]}</span>` : ''}
-        </div>
-      `).join('');
-
-  const todayFmt = today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-
-  pendingAutoSchedule = slots.map(s => ({ id: s.teacher.id, name: s.teacher.name, startMins: s.startMins }));
-
-  openModal(`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div class="card-title" style="margin-bottom:2px">✨ Suggested Schedule</div>
-        <div style="font-size:12px;color:var(--muted)">${todayFmt} · Coach ${coach} · 10 min obs + 5 min travel</div>
-      </div>
-    </div>
-    ${slotsHTML}
-    ${slots.length > 0 ? `
-    <div style="margin-top:18px;padding:12px;background:#f0fdf4;border-radius:10px;font-size:12px;color:#15803d;font-weight:700;text-align:center">
-      📋 ${slots.length} observation${slots.length>1?'s':''} · ~${slots.length * 15} min total
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="addScheduleToPlanner()">
-      Add All to Today's Planner →
-    </button>` : ''}
-    <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeModalDirect()">Close</button>
-  `);
-}
-
-
-function deduplicateSilent() {
-  // Deduplicate ALL days, keep earliest created visit per teacher per day
-  const seen = new Set();
-  state.visits = state.visits
-    .sort((a, b) => (a.createdAt || '') < (b.createdAt || '') ? -1 : 1)
-    .filter(v => {
-      const key = String(v.teacherId) + '_' + (v.visitDate || '');
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
-
-function deduplicateTodaysVisits() {
-  const before = state.visits.length;
-  deduplicateSilent();
-  const removed = before - state.visits.length;
-  localSave();
-  render();
-  if (removed > 0) showSync(`✓ Removed ${removed} duplicate${removed>1?'s':''}`);
-  else showSync('No duplicates found');
-}
-
-let pendingAutoSchedule = [];
-
-async function addScheduleToPlanner() {
-  const today = toDateStr(new Date());
-  const toTimeStr = mins => {
-    const h = Math.floor(mins/60);
-    const m = mins % 60;
-    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-  };
-
-  // Build set of teacher IDs already planned today to avoid duplicates
-  const alreadyPlanned = new Set(
-    state.visits
-      .filter(v => v.visitDate === today && v.status !== 'cancelled')
-      .map(v => String(v.teacherId))
-  );
-
-  for (const s of pendingAutoSchedule) {
-    if (alreadyPlanned.has(String(s.id))) continue; // skip if already planned today
-    alreadyPlanned.add(String(s.id)); // prevent duplicates within this batch
-
-    const timeStr = toTimeStr(s.startMins);
-    const visit = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-      teacherId: s.id,
-      teacherName: s.name,
-      visitDate: today,
-      visitTime: timeStr,
-      coach: state.currentCoach,
-      status: 'planned',
-      notes: 'Auto-scheduled (10 min)',
-      createdAt: new Date().toISOString()
-    };
-    state.visits.push(visit);
-    if (USE_SHEETS) { await apiPost('saveVisit', visit); showSync('✓ Saved'); }
-    await new Promise(r => setTimeout(r, 100)); // small delay so IDs are unique
-  }
-  pendingAutoSchedule = [];
-  localSave();
-  closeModalDirect();
-  render();
-  switchTab('schedule');
-}
-
-function renderSchedule() {
-  const now = new Date();
-  const todayStr = toDateStr(now);
-  const todayVisits = state.visits
-    .filter(v => v.visitDate === todayStr)
-    .sort((a,b) => a.visitTime > b.visitTime ? 1 : -1);
-  const availNow = state.teachers.filter(isAvailableNow);
-  const closingSoon = state.teachers.filter(isWindowClosingSoon);
-
-  // Available now section
-  let availHTML = '';
-  if (availNow.length === 0) {
-    availHTML = '<div class="card"><div class="empty"><div class="e-icon">☕</div><p>No teachers available at this moment.</p></div></div>';
-  } else {
-    availHTML = '<div class="card">' + availNow.map(function(t) {
-      const alreadyScheduled = todayVisits.find(v => v.teacherId == t.id && v.status !== 'cancelled');
-      const { level } = getTeacherPriority(t);
-      const priorityColor = level === 'urgent' ? '#9f1239' : level === 'overdue' ? '#9a3412' : level === 'needs' ? '#854d0e' : '';
-      const priorityLabel = level === 'urgent' ? '🔴 Urgent' : level === 'overdue' ? '🟠 Overdue' : level === 'needs' ? '🟡 Needs attn' : '';
-      return '<div class="avail-chip" onclick="openScheduleVisit(\'' + t.id + '\')">'
-        + '<div>'
-        +   '<div class="ac-name">' + t.name + (priorityLabel ? ' <span style="font-size:11px;font-weight:800;color:' + priorityColor + '">' + priorityLabel + '</span>' : '') + '</div>'
-        +   '<div class="ac-meta">' + t.gradeBand + ' · Goal ' + (t.currentGoal || 1) + ' · Room ' + (t.room || '—') + '</div>'
-        + '</div>'
-        + '<div style="margin-left:auto;display:flex;align-items:center;gap:8px">'
-        +   (alreadyScheduled ? '<span class="visit-status vs-planned">Scheduled</span>' : '')
-        +   '<div class="ac-time">' + fmtTime(t.availabilityStart) + '–' + fmtTime(t.availabilityEnd) + '</div>'
-        + '</div>'
-        + '</div>';
-    }).join('') + '</div>';
-  }
-
-  // Closing soon section
-  let closingHTML = '';
-  if (closingSoon.length > 0) {
-    closingHTML = '<div class="section-title">⚡ Window Closing Soon</div>'
-      + '<div class="card" style="border-color:#fed7aa">'
-      + closingSoon.map(function(t) {
-          const [eh, em] = t.availabilityEnd.split(':').map(Number);
-          const nowMins = now.getHours() * 60 + now.getMinutes();
-          const minsLeft = eh * 60 + em - nowMins;
-          return '<div class="closing-chip" onclick="quickObserve(\'' + t.id + '\')">'
-            + '<div>'
-            +   '<div class="cc-name">⚡ ' + t.name + '</div>'
-            +   '<div class="cc-meta">Available until ' + fmtTime(t.availabilityEnd) + ' · Not seen this week · Tap to observe now</div>'
-            + '</div>'
-            + '<div class="cc-time">' + minsLeft + ' min left</div>'
-            + '</div>';
-        }).join('')
-      + '</div>';
-  }
-
-  // Today's visits
-  let visitsHTML = '';
-  if (todayVisits.length === 0) {
-    visitsHTML = '<div class="card"><div class="empty"><div class="e-icon">🗓</div><p>No visits planned for today.</p></div></div>';
-  } else {
-    visitsHTML = '<div class="card">' + todayVisits.map(function(v) {
-      const sc = v.status === 'done' ? 'vs-done' : v.status === 'cancelled' ? 'vs-cancelled' : 'vs-planned';
-      return '<div class="visit-row">'
-        + '<div class="vr-time">' + fmtTime(v.visitTime) + '</div>'
-        + '<div>'
-        +   '<div class="vr-name">' + v.teacherName + '</div>'
-        +   '<div class="vr-coach">Coach ' + v.coach + '</div>'
-        +   (v.notes ? '<div class="vr-coach" style="margin-top:2px;font-style:italic">' + v.notes + '</div>' : '')
-        + '</div>'
-        + '<div class="vr-actions">'
-        +   '<span class="visit-status ' + sc + '">' + (v.status || 'planned') + '</span>'
-        +   '<button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px" onclick="editVisit(\'' + v.id + '\')">✏️</button>'
-        +   (v.status !== 'done' ? '<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:#dcfce7;color:#15803d" onclick="markVisitDone(\'' + v.id + '\')">✓</button>' : '')
-        + '</div>'
-        + '</div>';
-    }).join('') + '</div>';
-  }
-
-  // All teachers availability list — sorted by priority
-  const PRIORITY_ORDER = { urgent: 0, overdue: 1, needs: 2 };
-  const sortedAll = [...state.teachers].sort((a, b) => {
-    const pa = PRIORITY_ORDER[getTeacherPriority(a).level] ?? 99;
-    const pb = PRIORITY_ORDER[getTeacherPriority(b).level] ?? 99;
-    return pa - pb;
-  });
-
-  let allTeachersHTML = '';
-  if (state.teachers.length === 0) {
-    allTeachersHTML = '<div class="empty"><p>Add teachers first.</p></div>';
-  } else {
-    allTeachersHTML = sortedAll.map(function(t) {
-      const avail = isAvailableNow(t);
-      const closing = isWindowClosingSoon(t);
-      const { level } = getTeacherPriority(t);
-      const rowBg = level === 'urgent' ? 'background:#fff1f2;' : level === 'overdue' ? 'background:#fff7ed;' : level === 'needs' ? 'background:#fefce8;' : '';
-      const priorityLabel = level === 'urgent' ? ' · <b style="color:#9f1239">🔴 Urgent</b>' : level === 'overdue' ? ' · <b style="color:#9a3412">🟠 Overdue</b>' : level === 'needs' ? ' · <b style="color:#854d0e">🟡 Needs attn</b>' : '';
-      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);' + rowBg + '" onclick="openScheduleVisit(\'' + t.id + '\')">'
-        + '<span class="avail-dot ' + (avail ? 'avail-now' : 'avail-no') + '"></span>'
-        + '<div style="flex:1">'
-        +   '<div style="font-size:14px;font-weight:700;font-family:Nunito,sans-serif">' + t.name + (closing ? ' <span style="font-size:11px;color:#ea580c;font-weight:800">⚡ Closing soon</span>' : '') + '</div>'
-        +   '<div style="font-size:11px;color:var(--muted)">' + t.gradeBand + ' · Room ' + (t.room || '—') + priorityLabel + '</div>'
-        + '</div>'
-        + '<div style="text-align:right">'
-        +   '<div style="font-size:12px;font-weight:700;color:var(--' + (avail ? 'mint2' : 'muted') + ')">' + (t.availabilityStart && t.availabilityEnd ? fmtTime(t.availabilityStart) + '–' + fmtTime(t.availabilityEnd) : 'No window set') + '</div>'
-        +   '<div style="font-size:10px;color:var(--muted)">' + (t.availableDays || '').replace(/,/g, ' ') + '</div>'
-        + '</div>'
-        + '</div>';
-    }).join('');
-  }
-
-  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-    + '<div class="section-title" style="margin-bottom:0">Available Right Now — ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) + '</div>'
-    + '<button class="btn btn-sm btn-primary" onclick="generateAutoSchedule()" style="background:linear-gradient(135deg,var(--sky2),var(--indigo));display:flex;align-items:center;gap:6px">✨ Auto-Schedule</button>'
-    + '</div>'
-    + availHTML
-    + closingHTML
-    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-    +   "<div class=\"section-title\" style=\"margin-bottom:0\">Today's Planned Visits</div>"
-    +   '<div style="display:flex;gap:6px">'
-    +   '<button class="btn btn-sm" style="background:#fef2f2;color:#dc2626;font-size:11px" onclick="deduplicateTodaysVisits()" title="Remove duplicate visits">🧹 Dedupe</button>'
-    +   '<button class="btn btn-sm btn-secondary" onclick="openPlanVisitModal()">+ Plan Visit</button>'
-    +   '</div>'
-    + '</div>'
-    + '<div style="height:10px"></div>'
-    + visitsHTML
-    + '<div class="section-title">All Teachers — Availability</div>'
-    + '<div style="height:4px"></div>'
-    + '<div class="card">' + allTeachersHTML + '</div>';
-}
 
 // ── OBSERVE ────────────────────────────────────────────
 function renderObserve() {
@@ -1785,144 +1391,6 @@ async function deleteTeacher(id) {
   render();
 }
 
-function openPlanVisitModal() {
-  visitForm = { visitDate: toDateStr(new Date()), coach: state.currentCoach, status: 'planned' };
-  openModal(visitModalHTML());
-}
-function openScheduleVisit(teacherId) {
-  const t = state.teachers.find(x => x.id == teacherId);
-  visitForm = {
-    teacherId, teacherName: t?.name || '',
-    visitDate: toDateStr(new Date()),
-    coach: state.currentCoach,
-    status: 'planned'
-  };
-  openModal(visitModalHTML());
-}
-function editVisit(id) {
-  const v = state.visits.find(x => x.id == id);
-  visitForm = { ...v };
-  openModal(visitModalHTML(true));
-}
-function visitModalHTML(isEdit) {
-  const f = visitForm;
-  return `
-    <div class="modal-title">${isEdit ? 'Edit Visit' : 'Plan a Visit'}</div>
-    <div class="form-group">
-      <label class="form-label">Teacher *</label>
-      <select class="form-input" id="vf-teacher" onchange="visitForm.teacherId=this.value;visitForm.teacherName=this.options[this.selectedIndex].text">
-        <option value="">Select…</option>
-        ${state.teachers.map(t => `<option value="${t.id}" ${f.teacherId==t.id?'selected':''}>${t.name}</option>`).join('')}
-      </select>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Date *</label>
-        <input class="form-input" type="date" id="vf-date" value="${f.visitDate||toDateStr(new Date())}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Time</label>
-        <input class="form-input" type="time" id="vf-time" value="${f.visitTime||''}">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Coach</label>
-      <select class="form-input" id="vf-coach">
-        <option ${f.coach==='Presley'?'selected':''}>Presley</option>
-        <option ${f.coach==='Rickett'?'selected':''}>Rickett</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Notes</label>
-      <input class="form-input" id="vf-notes" value="${f.notes||''}" placeholder="Optional notes…">
-    </div>
-    ${isEdit ? `
-    <div class="form-group">
-      <label class="form-label">Status</label>
-      <select class="form-input" id="vf-status">
-        <option ${f.status==='planned'?'selected':''}>planned</option>
-        <option ${f.status==='done'?'selected':''}>done</option>
-        <option ${f.status==='cancelled'?'selected':''}>cancelled</option>
-      </select>
-    </div>` : ''}
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-primary btn-full" onclick="saveVisit(${isEdit?`'${f.id}'`:'null'})">${isEdit ? 'Save Changes' : 'Plan Visit'}</button>
-      ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="deleteVisit('${f.id}')">Delete</button>` : ''}
-    </div>
-  `;
-}
-
-async function saveVisit(editId) {
-  const teacherId = document.getElementById('vf-teacher').value;
-  const t = state.teachers.find(x => x.id == teacherId);
-  if (!teacherId) { alert('Select a teacher'); return; }
-  const data = {
-    id: editId || Date.now().toString(),
-    teacherId,
-    teacherName: t?.name || '',
-    coach: document.getElementById('vf-coach').value,
-    visitDate: document.getElementById('vf-date').value,
-    visitTime: document.getElementById('vf-time').value,
-    notes: document.getElementById('vf-notes').value,
-    status: editId ? document.getElementById('vf-status').value : 'planned',
-    createdAt: editId ? visitForm.createdAt : new Date().toISOString()
-  };
-  if (editId) {
-    const idx = state.visits.findIndex(v => v.id == editId);
-    state.visits[idx] = data;
-    if (USE_SHEETS) { await apiPost('updateVisit', data); showSync('✓ Saved'); }
-  } else {
-    state.visits.push(data);
-    if (USE_SHEETS) { await apiPost('saveVisit', data); showSync('✓ Saved'); }
-  }
-  localSave();
-  closeModalDirect();
-  render();
-}
-
-async function deleteVisit(id) {
-  if (!confirm('Delete this visit?')) return;
-  state.visits = state.visits.filter(v => v.id != id);
-  if (USE_SHEETS) { await apiPost('deleteVisit', null); showSync('✓ Deleted'); }
-  localSave();
-  closeModalDirect();
-  render();
-}
-
-async function markVisitDone(id) {
-  const v = state.visits.find(x => x.id == id);
-  if (!v) return;
-  v.status = 'done';
-  if (USE_SHEETS) { await apiPost('updateVisit', v); }
-  localSave();
-  render();
-}
-
-// ══════════════════════════════════════════════════════
-// OBSERVATION ACTIONS
-// ══════════════════════════════════════════════════════
-function selectObsTeacher(id) {
-  state.selectedTeacherId = id;
-  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
-  render();
-}
-
-function setLookFor(idx, val) {
-  if (!obsForm.lookFors) obsForm.lookFors = {};
-  obsForm.lookFors[idx] = val;
-  render();
-}
-
-function setImpression(val) {
-  obsForm.impression = val;
-  render();
-}
-
-function quickObserve(teacherId) {
-  state.selectedTeacherId = teacherId;
-  obsForm = { date: toDateStr(new Date()), lookFors: {}, impression: 'On track' };
-  switchTab('observe');
-}
 
 async function submitObservation() {
   const glow = document.getElementById('obsGlow')?.value || obsForm.glow || '';
@@ -2365,26 +1833,6 @@ function computeAlerts() {
       });
     }
   });
-
-  // ── 6. Available now but no visit planned today ───
-  const availNow = state.teachers.filter(isAvailableNow);
-  const todayVisits = state.visits.filter(v => v.visitDate === today && v.status !== 'cancelled');
-  const unplanned = availNow.filter(t =>
-    !todayVisits.find(v => v.teacherId == t.id)
-  );
-  if (unplanned.length > 0) {
-    alerts.push({
-      type: 'schedule',
-      priority: 2,
-      teacher: null,
-      title: `${unplanned.length} teacher${unplanned.length > 1 ? 's' : ''} available now — no visit planned`,
-      sub: unplanned.map(t => t.name).join(', '),
-      action: 'Go to Schedule',
-      onclick: `switchTab('schedule')`
-    });
-  }
-
-  // Sort: priority 0 (urgent) first
   alerts.sort((a, b) => a.priority - b.priority);
   return alerts;
 }
