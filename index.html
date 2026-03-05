@@ -839,22 +839,16 @@ async function callClaude(prompt, maxTokens) {
     return '';
   }
   try {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'claudeProxy',
-        prompt: prompt,
-        maxTokens: maxTokens
-      })
-    });
+    // Use GET to avoid CORS preflight issues with Apps Script
+    const url = SCRIPT_URL + '?action=claudeProxy&maxTokens=' + maxTokens + '&prompt=' + encodeURIComponent(prompt);
+    const res = await fetch(url);
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
     catch(e) { showSync('Bad response: ' + raw.slice(0, 80), true); return ''; }
     if (data.error) { showSync('AI error: ' + data.error.slice(0, 80), true); return ''; }
     if (!data.text) { showSync('AI returned empty response', true); return ''; }
-    showSync('✓ AI response received');
+    showSync('✓ AI ready');
     return data.text;
   } catch(e) {
     showSync('AI call failed: ' + e.message.slice(0, 80), true);
