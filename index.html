@@ -1285,6 +1285,8 @@ function renderDashboard() {
   const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
   const alertsHTML = renderAlerts();
+  // Trigger daily brief load (no-op if already loaded)
+  loadDailyBrief();
 
 
   const activityHTML = recent.length === 0
@@ -1303,6 +1305,17 @@ function renderDashboard() {
     ${!USE_SHEETS ? configBanner() : ''}
 
     ${alertsHTML}
+
+    ${state.observations.length >= 3 ? `
+    <div class="insight-card" style="margin-bottom:12px">
+      <div class="ic-label">🌅 Today's Coaching Brief</div>
+      ${dailyBriefCache.loading
+        ? '<div class="ic-text" style="color:#b45309;opacity:.7">Generating your brief...</div>'
+        : dailyBriefCache.text
+          ? '<div class="ic-text">' + dailyBriefCache.text + '</div>'
+          : '<div class="ic-text" style="opacity:.6">Brief will appear here each morning.</div>'
+      }
+    </div>` : ''}
 
     <div class="stats-row">
       <div class="stat-chip chip-sky" style="cursor:pointer" onclick="showGapsModal()">
@@ -1675,6 +1688,7 @@ function renderTeacherDetail(id) {
         <div class="goal-name">${goalObj ? goalObj.name : ''}</div>
         <div class="goal-progress">${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}</div>
       </div>
+      ${renderGoalReadiness(t.id)}
 
 
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1839,7 +1853,29 @@ function renderAnalytics() {
     : insights.map(s => '<div class="ic-text" style="margin-bottom:8px">' + s + '</div>').join('');
 
   return `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Friday Newsletter</div>
+
+    <div class="card" style="border-left:4px solid #6366f1">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:800;font-family:Nunito,sans-serif;color:#4338ca">📰 Weekly Summary Generator</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI-generated newsletter ready to paste into your Monday email</div>
+        </div>
+        <button class="btn btn-sm" style="background:#eef2ff;color:#4338ca;flex-shrink:0;font-weight:800"
+          onclick="generateNewsletter()" ${newsletterCache.loading ? 'disabled' : ''}>
+          ${newsletterCache.loading ? '✨ Writing...' : '✨ Generate'}
+        </button>
+      </div>
+      ${newsletterCache.loading
+        ? '<div style="font-size:13px;color:#6366f1;font-style:italic;padding:12px 0">Generating your weekly summary...</div>'
+        : newsletterCache.text
+          ? '<textarea id="newsletter-text" readonly style="width:100%;min-height:260px;border:1px solid #c7d2fe;border-radius:10px;padding:14px;font-size:13px;line-height:1.7;font-family:Nunito,sans-serif;resize:vertical;background:#fafafa;color:var(--body)">' + newsletterCache.text + '</textarea>'
+            + '<button class="btn btn-primary btn-full" style="margin-top:8px;background:#6366f1;border-color:#6366f1" onclick="copyNewsletter()">📋 Copy to Clipboard</button>'
+          : '<div style="font-size:13px;color:var(--muted);padding:8px 0">Tap Generate on Friday afternoon to create your Monday newsletter summary.</div>'
+      }
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px">
       <div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">Overview</div>
       <button class="privacy-btn ${privacyMode ? 'on' : ''}" onclick="privacyMode=!privacyMode;render()">
         ${privacyMode ? '🔒 Names hidden' : '👁 Hide names'}
@@ -2219,8 +2255,15 @@ async function submitObservation() {
       if (USE_SHEETS) { await apiPost('updateObservation', prev); }
     }
   }
+  // Generate AI coaching note and pre-fill into obs.coachNotes if empty
+  if (!obs.coachNotes) {
+    showSync('Generating coaching note...');
+    const aiNote = await generateObsSummary(obs, teacher, goal);
+    if (aiNote) { obs.coachNotes = aiNote; }
+  }
+
   state.observations.push(obs);
-  if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
+  if (USE_SHEETS) { showSync('Saving...'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
   localSave();
 
   // Email preview — greeting + last name, signed by coach
