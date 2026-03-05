@@ -1041,8 +1041,10 @@ function generateAutoSchedule() {
   for (const { t, priorityScore, days } of scored) {
     if (slots.length >= MAX_OBS) break;
 
+    console.log('[AutoSchedule]', t.name, '| raw start:', JSON.stringify(t.availabilityStart), '| raw end:', JSON.stringify(t.availabilityEnd));
     const winStart = toMins(t.availabilityStart);
     const winEnd   = toMins(t.availabilityEnd);
+    console.log('[AutoSchedule]', t.name, '| winStart mins:', winStart, '| winEnd mins:', winEnd);
 
     // Find earliest gap in this teacher's window that doesn't overlap existing slots
     let cursor = winStart;
