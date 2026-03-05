@@ -572,7 +572,7 @@
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
   <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
-    <span class="icon">◎</span>Dashboard
+    <span class="icon-wrap"><span class="icon">◎</span></span>Dashboard
   </button>
   <button class="nav-btn" data-tab="observe" onclick="switchTab('observe')">
     <span class="icon">✏️</span>Observe
@@ -2066,9 +2066,16 @@ function updateNavBadge() {
     const badge = document.createElement('span');
     badge.className = 'nav-badge';
     badge.textContent = count;
-    badge.style.cssText = 'position:absolute;top:6px;right:12px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;font-family:Nunito,sans-serif;min-width:16px;height:16px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;';
-    dashBtn.style.position = 'relative';
-    dashBtn.appendChild(badge);
+    badge.style.cssText = 'position:absolute;top:-4px;right:-6px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;font-family:Nunito,sans-serif;min-width:16px;height:16px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;z-index:2;';
+    const iconWrap = dashBtn.querySelector('.icon-wrap');
+    if (iconWrap) {
+      iconWrap.style.position = 'relative';
+      iconWrap.style.display = 'inline-block';
+      iconWrap.appendChild(badge);
+    } else {
+      dashBtn.style.position = 'relative';
+      dashBtn.appendChild(badge);
+    }
   }
 }
 
