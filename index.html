@@ -127,6 +127,8 @@
       position: relative;
     }
     .nav-btn .icon { font-size: 24px; line-height: 1; transition: transform .2s; }
+    .icon-wrap { position: relative; display: inline-block; }
+    .nav-badge { position: absolute; top: -5px; right: -8px; background: #f43f5e; color: #fff; font-size: 10px; font-weight: 900; font-family: 'Nunito', sans-serif; min-width: 16px; height: 16px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; z-index: 10; }
     .nav-btn.active { color: var(--sky); }
     .nav-btn.active .icon { transform: scale(1.15); }
     .nav-btn.active::after {
@@ -870,6 +872,108 @@ function isAvailableAtTime(teacher, timeStr, dayStr) {
   return t >= s && t <= e;
 }
 
+
+function isFlaggedTeacher(teacherId) {
+  // A teacher is flagged if their most recent real observation has followUpNeeded=true
+  // AND no subsequent unflagged observation has been logged
+  const tObs = state.observations
+    .filter(o => o.teacherId == teacherId && !o.missed && o.impression !== 'Missed visit')
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+  if (!tObs.length) return false;
+  const last = tObs[tObs.length - 1];
+  return last.followUpNeeded === true || last.followUpNeeded === 'TRUE';
+}
+
+function getFlaggedTeachers() {
+  return state.teachers.filter(t => isFlaggedTeacher(t.id));
+}
+
+function getPersistentGapTeachers() {
+  // Returns [{teacher, lookFor, count}] for teachers with 2+ No on same look-for
+  const result = [];
+  state.teachers.forEach(t => {
+    const tObs = state.observations
+      .filter(o => o.teacherId == t.id && !o.missed && o.impression !== 'Missed visit')
+      .sort((a,b) => new Date(a.date) - new Date(b.date))
+      .slice(-4);
+    if (tObs.length < 2) return;
+    const goals = GOALS[t.gradeBand] || [];
+    const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+    if (!goalObj) return;
+    let worstLF = null, worstCount = 0;
+    goalObj.lookFors.forEach((lf, idx) => {
+      const responses = tObs.map(o => {
+        const r = o.lookForResponses;
+        if (!r) return null;
+        try { return typeof r === 'string' ? JSON.parse(r)[idx] : r[idx]; } catch(e) { return null; }
+      }).filter(Boolean);
+      const noCount = responses.filter(r => r === 'No').length;
+      if (noCount >= 2 && noCount > worstCount) { worstCount = noCount; worstLF = lf; }
+    });
+    if (worstLF) result.push({ teacher: t, lookFor: worstLF, count: worstCount });
+  });
+  return result;
+}
+
+async function resolveFlag(teacherId) {
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  if (!confirm('Mark flag as resolved for ' + t.name + '?')) return;
+  // Find most recent flagged observation and clear it
+  const tObs = state.observations
+    .filter(o => o.teacherId == teacherId && !o.missed)
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
+  const flagged = tObs.find(o => o.followUpNeeded === true || o.followUpNeeded === 'TRUE');
+  if (flagged) {
+    flagged.followUpNeeded = false;
+    if (USE_SHEETS) { await apiPost('updateObservation', flagged); showSync('✓ Flag resolved'); }
+    localSave();
+    render();
+  }
+}
+
+function showFlaggedModal() {
+  const flagged = getFlaggedTeachers();
+  if (!flagged.length) { openModal('<div class="card-title">No Active Flags</div><p style="color:var(--muted);font-size:13px">All caught up!</p><button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="closeModalDirect()">Close</button>'); return; }
+  openModal(`
+    <div class="card-title" style="margin-bottom:14px">🚨 Flagged Teachers (${flagged.length})</div>
+    ${flagged.map(t => {
+      const tObs = state.observations.filter(o => o.teacherId == t.id && !o.missed).sort((a,b) => new Date(b.date)-new Date(a.date));
+      const last = tObs[0];
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:14px;font-weight:700">${t.name}</div>
+          <div style="font-size:11px;color:var(--muted)">${t.gradeBand} · Flagged ${last ? fmtDate(last.date) : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-primary" onclick="closeModalDirect();quickObserve('${t.id}')">Observe</button>
+          <button class="btn btn-sm" style="background:#fef2f2;color:#dc2626" onclick="resolveFlag('${t.id}')">Resolve</button>
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-secondary btn-full" style="margin-top:14px" onclick="closeModalDirect()">Close</button>
+  `);
+}
+
+function showGapsModal() {
+  const gaps = getPersistentGapTeachers();
+  if (!gaps.length) { openModal('<div class="card-title">No Persistent Gaps</div><p style="color:var(--muted);font-size:13px">No repeated look-for gaps detected yet.</p><button class="btn btn-secondary btn-full" style="margin-top:12px" onclick="closeModalDirect()">Close</button>'); return; }
+  openModal(`
+    <div class="card-title" style="margin-bottom:14px">🔍 Persistent Gaps (${gaps.length})</div>
+    ${gaps.map(({teacher: t, lookFor, count}) => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:14px;font-weight:700">${t.name}</div>
+          <button class="btn btn-sm btn-primary" onclick="closeModalDirect();quickObserve('${t.id}')">Observe</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${t.gradeBand} · Goal ${t.currentGoal || 1}</div>
+        <div style="font-size:12px;background:#fef2f2;color:#dc2626;padding:5px 9px;border-radius:8px;font-weight:600">"${lookFor}" — marked No ${count}x recently</div>
+      </div>
+    `).join('')}
+    <button class="btn btn-secondary btn-full" style="margin-top:14px" onclick="closeModalDirect()">Close</button>
+  `);
+}
+
 function renderAvailChip(t) {
   const done = seenToday(t.id);
   const id = String(t.id);
@@ -939,7 +1043,7 @@ function render() {
 // ── DASHBOARD ──────────────────────────────────────────
 function renderDashboard() {
   const week = state.observations.filter(o => isThisWeek(o.date)).length;
-  const flags = state.observations.filter(o => o.followUpNeeded === true || o.followUpNeeded === 'TRUE').length;
+  // flags now computed via getFlaggedTeachers()
   const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
   const alertsHTML = renderAlerts();
@@ -962,17 +1066,17 @@ function renderDashboard() {
     ${alertsHTML}
 
     <div class="stats-row">
-      <div class="stat-chip chip-sky">
-        <div class="val">${state.teachers.length}</div>
-        <div class="lbl">Teachers</div>
+      <div class="stat-chip chip-sky" style="cursor:pointer" onclick="showGapsModal()">
+        <div class="val">${getPersistentGapTeachers().length}</div>
+        <div class="lbl">Gaps 🔍</div>
       </div>
       <div class="stat-chip chip-sun">
         <div class="val">${week}</div>
         <div class="lbl">This Week</div>
       </div>
-      <div class="stat-chip chip-coral">
-        <div class="val">${flags}</div>
-        <div class="lbl">Flagged</div>
+      <div class="stat-chip chip-coral" style="cursor:pointer" onclick="showFlaggedModal()">
+        <div class="val">${getFlaggedTeachers().length}</div>
+        <div class="lbl">Flagged 🚨</div>
       </div>
     </div>
 
@@ -1130,7 +1234,7 @@ function renderTeachers() {
     ).join('');
     return '<div class="teacher-card ' + extra + '" onclick="viewTeacher(\'' + t.id + '\')">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      +   '<div class="tc-name">' + t.name + '</div>'
+      +   '<div class="tc-name">' + t.name + (isFlaggedTeacher(t.id) ? ' <span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:99px;font-weight:800">🚨</span>' : '') + '</div>'
       +   '<div style="display:flex;align-items:center;gap:6px">'
       +     (closing ? '<span style="font-size:11px;font-weight:800;color:#ea580c;font-family:Nunito,sans-serif">⚡</span>' : '')
       +     '<span class="avail-dot ' + (avail ? 'avail-now' : 'avail-no') + '"></span>'
@@ -1301,6 +1405,7 @@ function renderTeacherDetail(id) {
         <button class="btn btn-secondary btn-sm" onclick="openEditTeacher('${t.id}')">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">Delete</button>
         ${parseInt(t.currentGoal||1) < goals.length ? `<button class="btn btn-sm" style="background:#ede9fe;color:#4c1d95" onclick="advanceGoalFor('${t.id}')">Advance Goal →</button>` : ''}
+        ${isFlaggedTeacher(t.id) ? `<button class="btn btn-sm" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca" onclick="resolveFlag('${t.id}')">🚨 Resolve Flag</button>` : ''}
         <button class="btn btn-sm" id="printBtn" style="background:#f1f5f9;color:#475569" onclick="printTeacherProfile('${t.id}')">🖨️ Print</button>
       </div>
 
@@ -1827,6 +1932,16 @@ async function submitObservation() {
     createdAt: new Date().toISOString()
   };
 
+  // Auto-clear previous flag if this new observation doesn't re-flag
+  if (!obs.followUpNeeded) {
+    const prev = state.observations
+      .filter(o => o.teacherId == obs.teacherId && !o.missed)
+      .sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    if (prev && (prev.followUpNeeded === true || prev.followUpNeeded === 'TRUE')) {
+      prev.followUpNeeded = false;
+      if (USE_SHEETS) { await apiPost('updateObservation', prev); }
+    }
+  }
   state.observations.push(obs);
   if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
   localSave();
@@ -2066,16 +2181,8 @@ function updateNavBadge() {
     const badge = document.createElement('span');
     badge.className = 'nav-badge';
     badge.textContent = count;
-    badge.style.cssText = 'position:absolute;top:-4px;right:-6px;background:#f43f5e;color:#fff;font-size:10px;font-weight:900;font-family:Nunito,sans-serif;min-width:16px;height:16px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;z-index:2;';
     const iconWrap = dashBtn.querySelector('.icon-wrap');
-    if (iconWrap) {
-      iconWrap.style.position = 'relative';
-      iconWrap.style.display = 'inline-block';
-      iconWrap.appendChild(badge);
-    } else {
-      dashBtn.style.position = 'relative';
-      dashBtn.appendChild(badge);
-    }
+    (iconWrap || dashBtn).appendChild(badge);
   }
 }
 
