@@ -280,6 +280,9 @@
     .imp-btn.sel-on      { background: #e0f2fe; border-color: var(--sky); color: #0369a1; }
     .imp-btn.sel-support { background: #fee2e2; border-color: var(--coral); color: #991b1b; }
 
+    .imp-btn.sel-missed { background: #fef9c3; border-color: #ca8a04; color: #713f12; }
+
+
     /* ── Goal display ── */
     .goal-banner {
       background: linear-gradient(135deg, #e0f2fe, #bae6fd);
@@ -819,6 +822,13 @@ function isAvailableAtTime(teacher, timeStr, dayStr) {
   return t >= s && t <= e;
 }
 
+function fmtCoachTitle(coach) {
+  if (!coach) return '';
+  if (coach === 'Presley') return 'Dr. Presley';
+  if (coach === 'Rickett') return 'Mrs. Rickett';
+  return coach;
+}
+
 function fmtTime(t) {
   if (!t) return '';
   const [h, m] = t.split(':').map(Number);
@@ -891,16 +901,21 @@ function renderDashboard() {
         <div class="now-pulse"></div>
         ${availNow.length} teacher${availNow.length > 1 ? 's' : ''} available right now
       </div>
-      ${availNow.slice(0,3).map(t => `
-        <div class="avail-chip" onclick="quickObserve('${t.id}')">
-          <div>
+      ${availNow.map(t => `
+        <div class="avail-chip">
+          <div onclick="quickObserve('${t.id}')" style="flex:1;cursor:pointer">
             <div class="ac-name">${t.name}</div>
-            <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1}</div>
+            <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1} · Room ${t.room || '—'}</div>
           </div>
-          <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="text-align:right">
+              <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
+              <div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:2px">${fmtCoachTitle(t.primaryCoach)}</div>
+            </div>
+            <button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;font-size:11px;padding:4px 8px;white-space:nowrap" onclick="logMissedVisit('${t.id}')">✗ Missed</button>
+          </div>
         </div>
       `).join('')}
-      ${availNow.length > 3 ? `<div style="font-size:12px;color:var(--muted);text-align:center;padding-top:4px">+${availNow.length-3} more → Schedule tab</div>` : ''}
     </div>` : ''}
 
     <div class="card">
@@ -1116,7 +1131,7 @@ function renderTeacherDetail(id) {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
         <div>
           <div style="font-size:20px;font-weight:700;margin-bottom:4px">${t.name}</div>
-          <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · Coach ${t.primaryCoach}${t.room ? ` · Room ${t.room}` : ''}</div>
+          <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · ${fmtCoachTitle(t.primaryCoach)}${t.room ? ` · Room ${t.room}` : ''}</div>
           ${t.email ? `<div style="font-size:12px;color:var(--teal);margin-top:4px">${t.email}</div>` : ''}
         </div>
         <span class="avail-dot ${avail ? 'avail-now' : 'avail-no'}" style="width:12px;height:12px;flex-shrink:0;margin-top:4px"></span>
@@ -1153,9 +1168,18 @@ function renderTeacherDetail(id) {
       ? `<div class="card"><div class="empty"><p>No observations yet for ${t.name}.</p></div></div>`
       : tObs.map(o => {
           const g = (GOALS[t.gradeBand]||[]).find(x => x.id === parseInt(o.goalNumber));
+          if (o.missed || o.impression === 'Missed visit') {
+            return `<div class="obs-entry" style="background:#fefce8;border-left:3px solid #ca8a04">
+              <div class="oe-header">
+                <div class="oe-date">${fmtDate(o.date)} · ${fmtCoachTitle(o.coach)}</div>
+                <span class="oe-goal" style="background:#fef9c3;color:#713f12">✗ Missed</span>
+              </div>
+              ${o.coachNotes ? `<div class="oe-note" style="margin-top:4px">${o.coachNotes}</div>` : ''}
+            </div>`;
+          }
           return `<div class="obs-entry">
             <div class="oe-header">
-              <div class="oe-date">${fmtDate(o.date)} · ${o.coach}</div>
+              <div class="oe-date">${fmtDate(o.date)} · ${fmtCoachTitle(o.coach)}</div>
               <span class="oe-goal">${g ? g.emoji : ''} Goal ${o.goalNumber}</span>
             </div>
             ${renderLookForHistory(o.lookForResponses, g)}
@@ -1460,7 +1484,7 @@ async function submitObservation() {
   const greeting = teacher.greeting || 'Ms.';
   const formalName = greeting + ' ' + lastName;
   const emailPreview = `📧 EMAIL TO: ${teacher.name}${teacher.email ? ' <'+teacher.email+'>' : ''}
-From / CC: Coach ${state.currentCoach}
+From / CC: ${fmtCoachTitle(state.currentCoach)}
 
 Subject: Quick Visit — ${fmtDate(obs.date)}
 
@@ -1479,7 +1503,7 @@ ${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalN
 
 Keep up the great work!
 
-— Coach ${state.currentCoach}`;
+— ${fmtCoachTitle(state.currentCoach)}`;
 
   showEmailModal(emailPreview, obs.id);
 
@@ -1514,7 +1538,7 @@ ${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalN
 
 Keep up the great work!
 
-— Coach ${obs.coach}`;
+— ${fmtCoachTitle(obs.coach)}`;
 }
 
 function showEmailModal(emailText, obsId) {
@@ -1591,6 +1615,62 @@ async function advanceGoalFor(teacherId) {
 // ══════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════
+
+
+function logMissedVisit(teacherId) {
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  openModal(`
+    <div class="card-title" style="margin-bottom:4px">✗ Couldn't Observe</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">${t.name}</div>
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <select class="form-input" id="missed-reason">
+        <option>Testing in progress</option>
+        <option>Running small groups</option>
+        <option>Teacher absent</option>
+        <option>Class absent / field trip</option>
+        <option>Substitute present</option>
+        <option>Not a good time — will reschedule</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <input class="form-input" id="missed-notes" placeholder="Any additional context…">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveMissedVisit('${t.id}')">Log & Close</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeModalDirect()">Cancel</button>
+  `);
+}
+
+async function saveMissedVisit(teacherId) {
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  const reason = document.getElementById('missed-reason')?.value || 'Could not observe';
+  const notes  = document.getElementById('missed-notes')?.value || '';
+  const obs = {
+    id: Date.now().toString(),
+    teacherId: t.id,
+    teacherName: t.name,
+    coach: state.currentCoach,
+    date: toDateStr(new Date()),
+    goalNumber: t.currentGoal || 1,
+    lookForResponses: {},
+    impression: 'Missed visit',
+    glow: '',
+    grow: '',
+    coachNotes: '✗ Could not observe — ' + reason + (notes ? ': ' + notes : ''),
+    followUpNeeded: false,
+    missed: true,
+    createdAt: new Date().toISOString()
+  };
+  state.observations.push(obs);
+  if (USE_SHEETS) { await apiPost('saveObservation', obs); showSync('✓ Logged'); }
+  localSave();
+  closeModalDirect();
+  render();
+}
 
 function quickObserve(teacherId) {
   state.selectedTeacherId = teacherId;
@@ -1749,148 +1829,92 @@ function isWindowClosingSoon(t) {
 // ══════════════════════════════════════════════════════
 // AI INSIGHTS ENGINE
 // ══════════════════════════════════════════════════════
-const OVERDUE_DAYS   = 7;
-const STUCK_OBS      = 3;
-const DECLINE_STREAK = 2;
+const OVERDUE_DAYS = 14;
 
 function computeAlerts() {
   const alerts = [];
-  const today = toDateStr(new Date());
 
   state.teachers.forEach(t => {
     const tObs = state.observations
       .filter(o => o.teacherId == t.id)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // ── 1. Overdue visit ──────────────────────────────
     const lastObs = tObs[tObs.length - 1];
     const days = lastObs ? daysSince(lastObs.date) : 999;
+
+    // ── 1. Overdue visit (14+ days or never visited) ──
     if (days >= OVERDUE_DAYS) {
       alerts.push({
         type: 'overdue',
-        priority: days > 14 ? 0 : 1,
+        priority: days > 21 ? 0 : 1,
         teacher: t,
-        title: `${t.name} — overdue visit`,
+        title: `${t.name} — overdue`,
         sub: lastObs
           ? `Last seen ${Math.floor(days)} days ago (${fmtDate(lastObs.date)})`
           : 'Never visited',
-        action: 'Tap to observe now',
+        action: 'Observe now',
         onclick: `quickObserve('${t.id}')`
       });
     }
 
     // ── 2. Unresolved follow-up flag ──────────────────
     if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === 'TRUE')) {
-      const visitsSince = tObs.filter(o => new Date(o.date) > new Date(lastObs.date)).length;
-      if (visitsSince === 0) {
+      const revisited = tObs.some(o =>
+        new Date(o.date) > new Date(lastObs.date)
+      );
+      if (!revisited) {
         alerts.push({
           type: 'flag',
           priority: 0,
           teacher: t,
-          title: `${t.name} — unresolved follow-up`,
-          sub: `Flagged on ${fmtDate(lastObs.date)} and not yet revisited`,
-          action: 'Tap to observe now',
+          title: `${t.name} — follow-up needed`,
+          sub: `Flagged on ${fmtDate(lastObs.date)}, not yet revisited`,
+          action: 'Observe now',
           onclick: `quickObserve('${t.id}')`
         });
       }
     }
 
-    // ── 3. Stuck on same goal ─────────────────────────
-    if (tObs.length >= STUCK_OBS) {
-      const currentGoal = parseInt(t.currentGoal || 1);
-      const obsOnCurrentGoal = tObs.filter(o => parseInt(o.goalNumber) === currentGoal);
-      if (obsOnCurrentGoal.length >= STUCK_OBS) {
-        const goals = GOALS[t.gradeBand] || [];
-        const goalObj = goals.find(g => g.id === currentGoal);
-        alerts.push({
-          type: 'stuck',
-          priority: 1,
-          teacher: t,
-          title: `${t.name} — stuck on Goal ${currentGoal}`,
-          sub: `${obsOnCurrentGoal.length} observations on "${goalObj ? goalObj.name : 'Goal '+currentGoal}" with no advancement. Consider modeling or co-teaching.`,
-          action: 'View teacher',
-          onclick: `viewTeacher('${t.id}')`
-        });
-      }
-    }
-
-    // ── 4. Declining impression trend ─────────────────
-    if (tObs.length >= DECLINE_STREAK + 1) {
-      const recent = tObs.slice(-( DECLINE_STREAK + 1));
-      let declining = true;
-      for (let i = 1; i < recent.length; i++) {
-        const prev = IMPRESSION_SCORE[recent[i-1].impression] || 2;
-        const curr = IMPRESSION_SCORE[recent[i].impression] || 2;
-        if (curr >= prev) { declining = false; break; }
-      }
-      if (declining) {
-        const trend = recent.map(o => {
-          const s = IMPRESSION_SCORE[o.impression] || 2;
-          return s === 3 ? '💪' : s === 2 ? '✅' : '🆘';
-        }).join(' → ');
-        alerts.push({
-          type: 'decline',
-          priority: 0,
-          teacher: t,
-          title: `${t.name} — declining trend`,
-          sub: `Last ${recent.length} visits: ${trend}. May need extra support or goal adjustment.`,
-          action: 'View history',
-          onclick: `viewTeacher('${t.id}')`
-        });
-      }
-    }
-
-    // ── 5. Repeated "No" on same look-for ────────────
+    // ── 3. Repeated "No" on same look-for (max 1 per teacher) ──
     if (tObs.length >= 2) {
       const recentObs = tObs.slice(-4);
       const goals = GOALS[t.gradeBand] || [];
       const currentGoal = parseInt(t.currentGoal || 1);
       const goalObj = goals.find(g => g.id === currentGoal);
       if (goalObj) {
+        let worstLF = null;
+        let worstCount = 0;
         goalObj.lookFors.forEach((lf, idx) => {
-          const responses = recentObs
-            .map(o => {
-              const r = o.lookForResponses;
-              if (!r) return null;
+          const responses = recentObs.map(o => {
+            const r = o.lookForResponses;
+            if (!r) return null;
+            try {
               return typeof r === 'string' ? JSON.parse(r)[idx] : r[idx];
-            })
-            .filter(Boolean);
+            } catch(e) { return null; }
+          }).filter(Boolean);
           const noCount = responses.filter(r => r === 'No').length;
-          if (noCount >= 2 && responses.length >= 2) {
-            alerts.push({
-              type: 'lookfor',
-              priority: 2,
-              teacher: t,
-              title: `${t.name} — repeated gap`,
-              sub: `"${lf}" has been marked No ${noCount} time${noCount>1?'s':''} recently. This may be the micro-coaching focus.`,
-              action: 'View teacher',
-              onclick: `viewTeacher('${t.id}')`
-            });
+          if (noCount >= 2 && noCount > worstCount) {
+            worstCount = noCount;
+            worstLF = lf;
           }
         });
+        if (worstLF) {
+          alerts.push({
+            type: 'lookfor',
+            priority: 1,
+            teacher: t,
+            title: `${t.name} — persistent gap`,
+            sub: `"${worstLF}" marked No ${worstCount}x recently`,
+            action: 'View teacher',
+            onclick: `viewTeacher('${t.id}')`
+          });
+        }
       }
     }
   });
 
-  // ── 5b. Window closing soon ──────────────────────
-  state.teachers.forEach(t => {
-    if (isWindowClosingSoon(t)) {
-      const [eh, em] = t.availabilityEnd.split(':').map(Number);
-      const endMins = eh * 60 + em;
-      const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
-      const minsLeft = endMins - nowMins;
-      alerts.push({
-        type: 'schedule',
-        priority: 0,
-        teacher: t,
-        title: `${t.name} — window closing in ${minsLeft} min`,
-        sub: `Available until ${fmtTime(t.availabilityEnd)} and hasn't been seen this week`,
-        action: 'Observe now',
-        onclick: `quickObserve('${t.id}')`
-      });
-    }
-  });
-  alerts.sort((a, b) => a.priority - b.priority);
+
+    alerts.sort((a, b) => a.priority - b.priority);
   return alerts;
 }
 
