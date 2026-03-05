@@ -822,6 +822,39 @@ function isAvailableAtTime(teacher, timeStr, dayStr) {
   return t >= s && t <= e;
 }
 
+function renderAvailChip(t) {
+  const done = seenToday(t.id);
+  const id = String(t.id);
+  const chipStyle = done
+    ? 'background:#fefce8;border:1.5px solid #ca8a04;'
+    : 'background:#f0fdf4;border:1.5px solid var(--mint);';
+  const nameStyle = done ? 'color:#713f12' : '';
+  const badge = done
+    ? '<span style="font-size:10px;font-weight:800;background:#fef08a;color:#713f12;padding:2px 7px;border-radius:99px;margin-left:6px">\u2713 Seen today</span>'
+    : '';
+  const missedBtn = !done
+    ? '<button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;font-size:11px;padding:4px 8px;white-space:nowrap" onclick="logMissedVisit(\'' + id + '\')">\u2717 Missed</button>'
+    : '';
+  return '<div class="avail-chip" style="' + chipStyle + '">'
+    + '<div onclick="quickObserve(\'' + id + '\')" style="flex:1;cursor:pointer">'
+    +   '<div class="ac-name" style="' + nameStyle + '">' + t.name + badge + '</div>'
+    +   '<div class="ac-meta">' + t.gradeBand + ' &middot; Goal ' + (t.currentGoal || 1) + ' &middot; Room ' + (t.room || '&mdash;') + '</div>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    +   '<div style="text-align:right">'
+    +     '<div class="ac-time">' + fmtTime(t.availabilityStart) + '&ndash;' + fmtTime(t.availabilityEnd) + '</div>'
+    +     '<div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:2px">' + fmtCoachTitle(t.primaryCoach) + '</div>'
+    +   '</div>'
+    +   missedBtn
+    + '</div>'
+    + '</div>';
+}
+
+function seenToday(teacherId) {
+  const today = toDateStr(new Date());
+  return state.observations.some(o => o.teacherId == teacherId && o.date === today);
+}
+
 function fmtCoachTitle(coach) {
   if (!coach) return '';
   if (coach === 'Presley') return 'Dr. Presley';
@@ -901,21 +934,7 @@ function renderDashboard() {
         <div class="now-pulse"></div>
         ${availNow.length} teacher${availNow.length > 1 ? 's' : ''} available right now
       </div>
-      ${availNow.map(t => `
-        <div class="avail-chip">
-          <div onclick="quickObserve('${t.id}')" style="flex:1;cursor:pointer">
-            <div class="ac-name">${t.name}</div>
-            <div class="ac-meta">${t.gradeBand} · Goal ${t.currentGoal || 1} · Room ${t.room || '—'}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="text-align:right">
-              <div class="ac-time">${fmtTime(t.availabilityStart)}–${fmtTime(t.availabilityEnd)}</div>
-              <div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:2px">${fmtCoachTitle(t.primaryCoach)}</div>
-            </div>
-            <button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;font-size:11px;padding:4px 8px;white-space:nowrap" onclick="logMissedVisit('${t.id}')">✗ Missed</button>
-          </div>
-        </div>
-      `).join('')}
+      ${availNow.map(t => renderAvailChip(t)).join('')}
     </div>` : ''}
 
     <div class="card">
