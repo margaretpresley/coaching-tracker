@@ -716,7 +716,8 @@ let teacherForm = {};
 let privacyMode = false;
 let activityExpanded = false;
 let alertsExpanded = false;
-let teacherSortMode = 'priority'; // priority | firstName | lastName | goal | coach | gradeBand
+let teacherSortMode = 'priority';
+let teacherSearch = ''; // priority | firstName | lastName | goal | coach | gradeBand
 let newsletterCache = { text: null, loading: false, weekOf: null };
 
 // ══════════════════════════════════════════════════════
@@ -1493,24 +1494,24 @@ function renderTeachers() {
   const cardClass  = { urgent: 'tc-urgent', overdue: 'tc-overdue', needs: 'tc-needs' };
 
   // Always keep urgent/overdue/needs at top, then apply secondary sort
-  const withPriority = state.teachers.map(t => ({
-    t,
-    p: PRIORITY_ORDER[getTeacherPriority(t).level] ?? 99
-  }));
-
-  const secondarySort = (a, b) => {
-    if (teacherSortMode === 'firstName')  return a.t.name.split(' ')[0].localeCompare(b.t.name.split(' ')[0]);
-    if (teacherSortMode === 'lastName')   return (a.t.name.split(' ').pop()).localeCompare(b.t.name.split(' ').pop());
-    if (teacherSortMode === 'goal')       return parseInt(a.t.currentGoal||1) - parseInt(b.t.currentGoal||1);
-    if (teacherSortMode === 'coach')      return (a.t.primaryCoach||'').localeCompare(b.t.primaryCoach||'');
-    if (teacherSortMode === 'gradeBand')  return (a.t.gradeBand||'').localeCompare(b.t.gradeBand||'');
-    // default priority: already sorted
+  const sortFn = (a, b) => {
+    if (teacherSortMode === 'priority') {
+      const pa = PRIORITY_ORDER[getTeacherPriority(a).level] ?? 99;
+      const pb = PRIORITY_ORDER[getTeacherPriority(b).level] ?? 99;
+      return pa !== pb ? pa - pb : a.name.localeCompare(b.name);
+    }
+    if (teacherSortMode === 'firstName')  return a.name.split(' ')[0].localeCompare(b.name.split(' ')[0]);
+    if (teacherSortMode === 'lastName')   return (a.name.split(' ').pop()).localeCompare(b.name.split(' ').pop());
+    if (teacherSortMode === 'goal')       return parseInt(a.currentGoal||1) - parseInt(b.currentGoal||1);
+    if (teacherSortMode === 'coach')      return (a.primaryCoach||'').localeCompare(b.primaryCoach||'');
+    if (teacherSortMode === 'gradeBand')  return (a.gradeBand||'').localeCompare(b.gradeBand||'');
     return 0;
   };
 
-  const sorted = withPriority
-    .sort((a, b) => a.p !== b.p ? a.p - b.p : secondarySort(a, b))
-    .map(x => x.t);
+  const searchLower = teacherSearch.trim().toLowerCase();
+  const sorted = [...state.teachers]
+    .filter(t => !searchLower || t.name.toLowerCase().includes(searchLower))
+    .sort(sortFn);
 
   function teacherCard(t) {
     const tObs = state.observations.filter(o => o.teacherId == t.id);
@@ -1548,14 +1549,19 @@ function renderTeachers() {
 
   const sortLabels = { priority: 'Priority', firstName: 'First Name', lastName: 'Last Name', goal: 'Goal', coach: 'Coach', gradeBand: 'Grade Band' };
 
-  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">'
+  return '<div style="margin-bottom:12px">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+    +   '<input type="text" placeholder="Search teachers..." value="' + teacherSearch + '"'
+    +   '  oninput="teacherSearch=this.value;render()" '
+    +   '  style="flex:1;font-size:13px;padding:7px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:Nunito,sans-serif;outline:none" />'
+    +   '<button class="btn btn-primary btn-sm" onclick="openAddTeacher()" style="flex-shrink:0">+ Add</button>'
+    + '</div>'
     + '<div style="display:flex;align-items:center;gap:6px">'
     +   '<span style="font-size:12px;color:var(--muted);font-weight:700">Sort:</span>'
     +   '<select class="form-input" style="font-size:12px;padding:4px 8px;height:auto;width:auto" onchange="teacherSortMode=this.value;render()">'
     +     Object.entries(sortLabels).map(([v,l]) => '<option value="' + v + '"' + (teacherSortMode===v?' selected':'') + '>' + l + '</option>').join('')
     +   '</select>'
     + '</div>'
-    + '<button class="btn btn-primary btn-sm" onclick="openAddTeacher()">+ Add Teacher</button>'
     + '</div>'
     + (state.teachers.length === 0
       ? '<div class="card"><div class="empty"><div class="e-icon">👥</div><p>No teachers yet. Add your first teacher to get started.</p></div></div>'
@@ -1648,18 +1654,14 @@ function printTeacherProfile(id) {
 }
 
 function renderGoalReadiness(teacherId) {
-  // Don't auto-load — only show if already cached
   const cache = goalReadinessCache[teacherId];
   const obsCount = state.observations.filter(o => o.teacherId == teacherId && !o.missed).length;
-  if (!cache && obsCount < 3) return '';
-  if (cache?.loading) return '<div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">&#129302; Assessing goal readiness...</div>';
-  if (!cache?.text) return '<button class="btn btn-sm" style="margin-top:8px;background:#ede9fe;color:#4c1d95;font-size:11px;font-weight:800" onclick="loadGoalReadiness(\'' + teacherId + '\');render()">&#129302; Check Goal Readiness</button>';
-  const isReady    = cache.text.startsWith('Ready');
-  const isProgress = cache.text.startsWith('Showing');
-  const bg     = isReady ? '#f0fdf4' : isProgress ? '#fefce8' : '#fef2f2';
-  const color  = isReady ? '#15803d' : isProgress ? '#854d0e' : '#9f1239';
-  const border = isReady ? '#bbf7d0' : isProgress ? '#fde68a' : '#fecdd3';
-  return '<div style="margin-top:10px;padding:8px 12px;border-radius:10px;border:1.5px solid ' + border + ';background:' + bg + ';font-size:13px;font-weight:600;color:' + color + '">&#129302; ' + cache.text + '</div>';
+  // Auto-trigger load if enough obs and not yet cached
+  if (!cache && obsCount >= 3) loadGoalReadiness(teacherId);
+  // Only show something if AI says Ready
+  if (!cache || cache.loading || !cache.text) return '';
+  if (!cache.text.startsWith('Ready')) return '';
+  return '<div style="margin-top:10px;padding:7px 12px;border-radius:10px;border:1.5px solid #bbf7d0;background:#f0fdf4;font-size:12px;font-weight:700;color:#15803d">&#9989; Ready to advance — ' + cache.text.replace(/^Ready to advance:/i,'').trim() + '</div>';
 }
 
 function renderLookForHistory(lookForResponses, goalObj) {
@@ -2217,28 +2219,38 @@ async function deleteTeacher(id) {
 }
 
 
-const EMAIL_OPENERS = [
-  "Thanks for letting me pop in today!",
-  "It was so great catching your class this morning.",
-  "I really enjoyed stopping by today.",
-  "Thank you for the warm welcome during my visit!",
-  "What a great snapshot of your work — thanks for having me.",
-  "I loved what I got to see during my visit today.",
-  "Thanks for always making me feel welcome in your classroom.",
-  "It was a treat getting to stop in and see your students in action.",
-  "I appreciate you letting me observe today — great things happening in your room.",
-  "Thanks for having me — I always leave your classroom inspired."
+// Fallback openers used if AI is unavailable
+const EMAIL_OPENERS_FALLBACK = [
+  'Thanks for letting me pop in today!',
+  'It was so great catching your class this morning.',
+  'I really enjoyed stopping by today.',
+  'Thank you for the warm welcome during my visit!',
+  'What a great snapshot of your work — thanks for having me.',
+  'I loved what I got to see during my visit today.',
+  'Thanks for always making me feel welcome in your classroom.',
+  'It was a treat getting to stop in and see your students in action.',
+  'I appreciate you letting me observe today — great things happening in your room.',
+  'Thanks for having me — I always leave your classroom inspired.'
 ];
-
-// Cycle openers per teacher so the same one never repeats back-to-back
-// Stored as teacherId -> last index used
 const openerIndex = {};
 
-function getOpener(teacherId) {
+function getFallbackOpener(teacherId) {
   const last = openerIndex[teacherId] !== undefined ? openerIndex[teacherId] : -1;
-  let next = (last + 1) % EMAIL_OPENERS.length;
+  const next = (last + 1) % EMAIL_OPENERS_FALLBACK.length;
   openerIndex[teacherId] = next;
-  return EMAIL_OPENERS[next];
+  return EMAIL_OPENERS_FALLBACK[next];
+}
+
+async function getAIOpener(teacher, obs) {
+  if (!USE_SHEETS) return getFallbackOpener(teacher.id);
+  const goalObj = (GOALS[teacher.gradeBand]||[]).find(g => g.id === parseInt(obs?.goalNumber||1));
+  const prompt = 'Write ONE warm, natural opening sentence for a coaching email from an instructional coach to a teacher after a classroom visit. ' +
+    'Make it feel personal and specific — not generic. Do not start with "I". Do not use exclamation marks excessively. Just one sentence, no quotes around it. ' +
+    'Teacher: ' + teacher.name + '. Impression: ' + (obs?.impression||'positive') + '. ' +
+    (obs?.glow ? 'Something great observed: ' + obs.glow.slice(0,80) + '. ' : '') +
+    'Coaching focus: ' + (goalObj ? goalObj.name : 'general instruction') + '.';
+  const result = await callClaude(prompt, 60);
+  return result || getFallbackOpener(teacher.id);
 }
 
 async function submitObservation() {
@@ -2296,6 +2308,7 @@ async function submitObservation() {
   const lastName = teacher.name.trim().split(' ').pop();
   const greeting = teacher.greeting || 'Ms.';
   const formalName = greeting + ' ' + lastName;
+  const opener = await getAIOpener(teacher, obs);
   const emailPreview = `📧 EMAIL TO: ${teacher.name}${teacher.email ? ' <'+teacher.email+'>' : ''}
 From / CC: ${fmtCoachTitle(state.currentCoach)}
 
@@ -2303,7 +2316,7 @@ Subject: Quick Visit — ${fmtDate(obs.date)}
 
 Hi ${formalName},
 
-${getOpener(teacher.id)}
+${opener}
 
 🌟 What I noticed working well:
 ${glow}
@@ -2325,7 +2338,7 @@ Keep up the great work!
   switchTab('dashboard');
 }
 
-function buildEmail(obsId) {
+async function buildEmail(obsId) {
   const obs = state.observations.find(o => o.id == obsId);
   if (!obs) return '';
   const teacher = state.teachers.find(t => t.id == obs.teacherId);
@@ -2336,9 +2349,10 @@ function buildEmail(obsId) {
   const lastName = teacher.name.trim().split(' ').pop();
   const greeting = teacher.greeting || 'Ms.';
   const formalName = greeting + ' ' + lastName;
+  const opener = await getAIOpener(teacher, obs);
   return `Hi ${formalName},
 
-${getOpener(teacher.id)}
+${opener}
 
 🌟 What I noticed working well:
 ${obs.glow}
@@ -2354,10 +2368,10 @@ Keep up the great work!
 — ${fmtCoachTitle(obs.coach)}`;
 }
 
-function showEmailModal(emailText, obsId) {
+async function showEmailModal(emailText, obsId) {
   // emailText can be the full debug header version or just the body
   // We always show a clean copy-friendly version
-  const body = obsId ? buildEmail(obsId) : emailText;
+  let body = obsId ? await buildEmail(obsId) : emailText;
   const obs = obsId ? state.observations.find(o => o.id == obsId) : null;
   const teacher = obs ? state.teachers.find(t => t.id == obs.teacherId) : null;
   const subject = obs ? `Quick Visit — ${fmtDate(obs.date)}` : 'Quick Visit';
