@@ -786,6 +786,23 @@ function normalizeTime(val) {
 }
 
 function normalizeData() {
+  // Fix any visits with bad times (from earlier bugs)
+  state.visits = state.visits.map(v => {
+    if (v.visitTime) {
+      // If time looks like a decimal fraction, convert it
+      const s = String(v.visitTime).trim();
+      if (s.indexOf(':') === -1) {
+        const num = parseFloat(s);
+        if (!isNaN(num)) {
+          const totalMins = Math.round(num * 24 * 60);
+          const h = Math.floor(totalMins / 60) % 24;
+          const m = totalMins % 60;
+          v.visitTime = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+        }
+      }
+    }
+    return v;
+  });
   // Fix availability times on teachers
   state.teachers.forEach(t => {
     t.availabilityStart = normalizeTime(t.availabilityStart);
@@ -1507,6 +1524,9 @@ function renderTeacherDetail(id) {
             <div class="oe-grow">🎯 ${o.grow}</div>
             ${o.coachNotes ? `<div class="oe-note">📝 ${o.coachNotes}</div>` : ''}
             ${o.followUpNeeded === true || o.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
+            <div style="margin-top:10px">
+              <button class="btn btn-sm btn-secondary" onclick="showEmailModal(null,'${o.id}')" style="font-size:12px">📧 View / Resend Email</button>
+            </div>
           </div>`;
         }).join('')
     }
@@ -1960,11 +1980,93 @@ Keep up the great work!
 
 — Coach ${state.currentCoach}`;
 
-  alert(emailPreview);
+  showEmailModal(emailPreview, obs.id);
 
   state.selectedTeacherId = null;
   obsForm = {};
   switchTab('dashboard');
+}
+
+function buildEmail(obsId) {
+  const obs = state.observations.find(o => o.id == obsId);
+  if (!obs) return '';
+  const teacher = state.teachers.find(t => t.id == obs.teacherId);
+  if (!teacher) return '';
+  const goals = GOALS[teacher.gradeBand] || [];
+  const goalNum = parseInt(obs.goalNumber || 1);
+  const goal = goals.find(g => g.id === goalNum);
+  const lastName = teacher.name.trim().split(' ').pop();
+  const greeting = teacher.greeting || 'Ms.';
+  const formalName = greeting + ' ' + lastName;
+  return `Hi ${formalName},
+
+Thanks for letting me pop in today!
+
+🌟 What I noticed working well:
+${obs.glow}
+
+🎯 One tiny thing to try next time:
+${obs.grow}
+
+📍 You're currently working on:
+${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalNum}
+
+Keep up the great work!
+
+— Coach ${obs.coach}`;
+}
+
+function showEmailModal(emailText, obsId) {
+  // emailText can be the full debug header version or just the body
+  // We always show a clean copy-friendly version
+  const body = obsId ? buildEmail(obsId) : emailText;
+  const obs = obsId ? state.observations.find(o => o.id == obsId) : null;
+  const teacher = obs ? state.teachers.find(t => t.id == obs.teacherId) : null;
+  const subject = obs ? `Quick Visit — ${fmtDate(obs.date)}` : 'Quick Visit';
+  const toLine = teacher ? `${teacher.name}${teacher.email ? ' <' + teacher.email + '>' : ''}` : '';
+
+  openModal(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0">📧 Coaching Email</div>
+      <button class="btn btn-sm btn-primary" onclick="copyEmail('email-body-text')" style="display:flex;align-items:center;gap:6px">
+        📋 Copy
+      </button>
+    </div>
+    ${toLine ? `<div style="font-size:12px;color:var(--muted);margin-bottom:4px"><b>To:</b> ${toLine}</div>` : ''}
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px"><b>Subject:</b> ${subject}</div>
+    <textarea id="email-body-text" readonly
+      style="width:100%;min-height:280px;border:1px solid var(--border);border-radius:10px;padding:14px;
+             font-size:13px;line-height:1.6;font-family:'Nunito',sans-serif;resize:vertical;
+             background:#fafafa;color:var(--body)"
+    >${body}</textarea>
+    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="copyEmail('email-body-text')">
+      📋 Copy to Clipboard
+    </button>
+    ${teacher?.email ? `
+    <a href="mailto:${teacher.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}"
+       class="btn btn-secondary btn-full" style="margin-top:8px;display:block;text-align:center;text-decoration:none">
+      ✉️ Open in Mail App
+    </a>` : ''}
+    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="closeModalDirect()">Close</button>
+  `);
+}
+
+function copyEmail(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.select();
+  el.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(el.value).then(() => {
+      showSync('✓ Copied to clipboard!');
+    }).catch(() => {
+      document.execCommand('copy');
+      showSync('✓ Copied!');
+    });
+  } catch(e) {
+    document.execCommand('copy');
+    showSync('✓ Copied!');
+  }
 }
 
 async function advanceGoal() {
