@@ -583,7 +583,7 @@ const USE_SHEETS = true;
 // ══════════════════════════════════════════════════════
 let state = {
   teachers: [],
-  observations: []
+  observations: [],
   currentCoach: localStorage.getItem('currentCoach') || 'Presley',
   activeTab: 'dashboard',
   viewingTeacher: null,
@@ -702,7 +702,10 @@ function localSave() {
 function localLoad() {
   try {
     const t = localStorage.getItem('mc_teachers');
-    const o = localStorage.getItem('mc_observations'); catch(e) {}
+    if (t) state.teachers = JSON.parse(t);
+    const o = localStorage.getItem('mc_observations');
+    if (o) state.observations = JSON.parse(o);
+  } catch(e) {}
 }
 
 // Normalize time field — handles Google Sheets serial decimals, H:MM, HH:MM, 12h strings
@@ -737,9 +740,6 @@ function normalizeTime(val) {
 }
 
 function normalizeData() {
-    }
-    return v;
-  });
   // Fix availability times on teachers
   state.teachers.forEach(t => {
     t.availabilityStart = normalizeTime(t.availabilityStart);
@@ -949,6 +949,14 @@ function renderObserve() {
       </div>
 
       ${teacher && goal ? `
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Observing Goal</label>
+          <select class="form-input" onchange="obsForm.goalNumber=parseInt(this.value);obsForm.lookFors={};render()">
+            ${goals.map(g => `<option value="${g.id}" ${g.id === goalNum ? 'selected' : ''}>${g.emoji} Goal ${g.id} — ${g.name}${g.id === parseInt(teacher.currentGoal||1) ? ' ✦ current' : g.id < parseInt(teacher.currentGoal||1) ? ' (revisit)' : ' (preview)'}</option>`).join('')}
+          </select>
+          ${goalNum !== parseInt(teacher.currentGoal||1) ? `<div style="font-size:11px;margin-top:5px;padding:6px 10px;background:#fef9c3;border-radius:8px;color:#854d0e;font-weight:700">⚠️ Observing Goal ${goalNum} — teacher's current goal is ${teacher.currentGoal||1}. Their progress won't change.</div>` : ''}
+        </div>
+
         <div class="goal-banner">
           <div class="goal-num">${goal.emoji} Goal ${goalNum} of ${goals.length}</div>
           <div class="goal-name">${goal.name}</div>
@@ -1069,6 +1077,30 @@ function renderTeachers() {
 }
 
 // ── TEACHER DETAIL ─────────────────────────────────────
+function renderLookForHistory(lookForResponses, goalObj) {
+  if (!lookForResponses) return '';
+  let responses = lookForResponses;
+  if (typeof responses === 'string') {
+    try { responses = JSON.parse(responses); } catch(e) { return ''; }
+  }
+  const keys = Object.keys(responses);
+  if (!keys.length) return '';
+  const goalLFs = goalObj ? goalObj.lookFors : [];
+  let rows = '';
+  keys.forEach(function(k) {
+    const val = responses[k];
+    const label = goalLFs[parseInt(k)] || ('Look-for ' + (parseInt(k)+1));
+    const color = val === 'Yes' ? '#15803d' : val === 'Partial' ? '#b45309' : '#dc2626';
+    const bg    = val === 'Yes' ? '#f0fdf4' : val === 'Partial' ? '#fffbeb' : '#fef2f2';
+    const icon  = val === 'Yes' ? '✅' : val === 'Partial' ? '〽️' : '❌';
+    rows += '<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px">'
+      + '<span style="background:' + bg + ';color:' + color + ';font-weight:800;padding:1px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0">' + icon + ' ' + val + '</span>'
+      + '<span style="color:var(--body);line-height:1.4">' + label + '</span>'
+      + '</div>';
+  });
+  return '<div style="margin:8px 0 4px;border-top:1px solid var(--border);padding-top:8px">' + rows + '</div>';
+}
+
 function renderTeacherDetail(id) {
   const t = state.teachers.find(x => x.id == id);
   if (!t) { state.viewingTeacher = null; return renderTeachers(); }
@@ -1126,6 +1158,7 @@ function renderTeacherDetail(id) {
               <div class="oe-date">${fmtDate(o.date)} · ${o.coach}</div>
               <span class="oe-goal">${g ? g.emoji : ''} Goal ${o.goalNumber}</span>
             </div>
+            ${renderLookForHistory(o.lookForResponses, g)}
             <div class="oe-glow">🌟 ${o.glow}</div>
             <div class="oe-grow">🎯 ${o.grow}</div>
             ${o.coachNotes ? `<div class="oe-note">📝 ${o.coachNotes}</div>` : ''}
