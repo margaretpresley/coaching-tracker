@@ -540,6 +540,27 @@
     }
     .collapsible-arrow.open { transform: rotate(180deg); }
 
+
+    /* ── Auto-schedule ── */
+    .sched-slot {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .sched-slot:last-child { border-bottom: none; }
+    .sched-time {
+      min-width: 72px; font-size: 13px; font-weight: 900;
+      font-family: 'Nunito', sans-serif; color: var(--sky2);
+    }
+    .sched-info { flex: 1; }
+    .sched-name { font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; }
+    .sched-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .sched-badge {
+      font-size: 10px; font-weight: 800; padding: 2px 7px;
+      border-radius: 99px; background: #fff7ed; color: #9a3412;
+    }
+    .sched-badge.urgent { background: #fff1f2; color: #9f1239; }
+    .sched-empty { text-align:center; padding: 28px 0; color: var(--muted); font-size:14px; }
+
   </style>
 </head>
 <body>
@@ -947,6 +968,160 @@ function configBanner() {
 }
 
 // ── SCHEDULE ───────────────────────────────────────────
+
+// ── AUTO-SCHEDULE ───────────────────────────────────────────────────────────
+function generateAutoSchedule() {
+  const MAX_OBS   = 5;
+  const OBS_MINS  = 10;
+  const BUFFER    = 5;
+  const SLOT_MINS = OBS_MINS + BUFFER; // 15 min per slot
+
+  const coach = state.currentCoach;
+  const today = new Date();
+  const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][today.getDay()];
+
+  // Filter to this coach's teachers only, available today
+  const myTeachers = state.teachers.filter(t =>
+    t.primaryCoach === coach &&
+    t.availabilityStart && t.availabilityEnd &&
+    (t.availableDays || '').includes(dayName)
+  );
+
+  if (myTeachers.length === 0) {
+    openModal(`
+      <div class="card-title">Auto-Schedule</div>
+      <div class="sched-empty">
+        <div style="font-size:32px;margin-bottom:10px">📅</div>
+        <div>No teachers with availability set for today (${dayName}).</div>
+        <div style="font-size:12px;margin-top:6px;color:var(--muted)">Check that teachers have days configured in their profiles.</div>
+      </div>
+      <button class="btn btn-secondary btn-full" style="margin-top:16px" onclick="closeModalDirect()">Close</button>
+    `);
+    return;
+  }
+
+  // Score each teacher: urgent=0, overdue=1, needs=2, ok=3; secondary = days since last obs
+  const scored = myTeachers.map(t => {
+    const { level } = getTeacherPriority(t);
+    const priorityScore = { urgent: 0, overdue: 1, needs: 2 }[level] ?? 3;
+    const tObs = state.observations.filter(o => o.teacherId == t.id);
+    const lastObs = tObs.length
+      ? tObs.sort((a,b) => new Date(b.date)-new Date(a.date))[0]
+      : null;
+    const days = lastObs ? daysSince(lastObs.date) : 999;
+    return { t, priorityScore, days };
+  });
+  scored.sort((a,b) => a.priorityScore - b.priorityScore || b.days - a.days);
+
+  // Build slots — fit teachers into their windows, no overlap
+  // Convert HH:MM → minutes since midnight
+  const toMins = str => {
+    const [h,m] = str.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const fmtMins = mins => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hh = h % 12 || 12;
+    return `${hh}:${String(m).padStart(2,'0')} ${ampm}`;
+  };
+
+  const slots = [];
+  const usedWindows = []; // [{start, end}] — track placed slots to avoid overlap
+
+  for (const { t, priorityScore, days } of scored) {
+    if (slots.length >= MAX_OBS) break;
+
+    const winStart = toMins(t.availabilityStart);
+    const winEnd   = toMins(t.availabilityEnd);
+
+    // Find earliest gap in this teacher's window that doesn't overlap existing slots
+    let cursor = winStart;
+    while (cursor + OBS_MINS <= winEnd) {
+      const slotEnd = cursor + OBS_MINS;
+      const overlap = usedWindows.some(w => cursor < w.end + BUFFER && slotEnd > w.start);
+      if (!overlap) {
+        const { level } = getTeacherPriority(t);
+        slots.push({ teacher: t, startMins: cursor, endMins: slotEnd, level, days });
+        usedWindows.push({ start: cursor, end: slotEnd });
+        break;
+      }
+      cursor += SLOT_MINS;
+    }
+  }
+
+  // Sort slots chronologically for display
+  slots.sort((a,b) => a.startMins - b.startMins);
+
+  const levelLabel = { urgent: '🔴 Urgent', overdue: '🟠 Overdue', needs: '🟡 Needs attn' };
+  const levelClass = { urgent: 'urgent', overdue: '', needs: '' };
+
+  const slotsHTML = slots.length === 0
+    ? `<div class="sched-empty"><div style="font-size:32px;margin-bottom:10px">🤔</div><div>Couldn't fit any observations — windows may be too short for 10-min slots.</div></div>`
+    : slots.map(s => `
+        <div class="sched-slot">
+          <div class="sched-time">${fmtMins(s.startMins)}</div>
+          <div class="sched-info">
+            <div class="sched-name">${s.teacher.name}</div>
+            <div class="sched-meta">
+              ${s.teacher.gradeBand} · Goal ${s.teacher.currentGoal || 1} · Room ${s.teacher.room || '—'}
+              · ${s.days === 999 ? 'Never observed' : s.days + 'd since last obs'}
+            </div>
+          </div>
+          ${levelLabel[s.level] ? `<span class="sched-badge ${levelClass[s.level]}">${levelLabel[s.level]}</span>` : ''}
+        </div>
+      `).join('');
+
+  const todayFmt = today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  openModal(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="card-title" style="margin-bottom:2px">✨ Suggested Schedule</div>
+        <div style="font-size:12px;color:var(--muted)">${todayFmt} · Coach ${coach} · 10 min obs + 5 min travel</div>
+      </div>
+    </div>
+    ${slotsHTML}
+    ${slots.length > 0 ? `
+    <div style="margin-top:18px;padding:12px;background:#f0fdf4;border-radius:10px;font-size:12px;color:#15803d;font-weight:700;text-align:center">
+      📋 ${slots.length} observation${slots.length>1?'s':''} · ~${slots.length * 15} min total
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="addScheduleToPlanner(${JSON.stringify(slots.map(s=>({id:s.teacher.id,name:s.teacher.name,startMins:s.startMins})))})">
+      Add All to Today's Planner →
+    </button>` : ''}
+    <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeModalDirect()">Close</button>
+  `);
+}
+
+function addScheduleToPlanner(slotData) {
+  const today = toDateStr(new Date());
+  const toTimeStr = mins => {
+    const h = Math.floor(mins/60);
+    const m = mins % 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  };
+  slotData.forEach(s => {
+    const existing = state.visits.find(v => v.teacherId == s.id && v.visitDate === today && v.status !== 'cancelled');
+    if (existing) return; // skip if already planned
+    const visit = {
+      id: 'v' + Date.now() + Math.random().toString(36).slice(2,6),
+      teacherId: s.id,
+      teacherName: s.name,
+      visitDate: today,
+      visitTime: toTimeStr(s.startMins),
+      coach: state.currentCoach,
+      status: 'planned',
+      notes: 'Auto-scheduled (10 min)'
+    };
+    state.visits.push(visit);
+    if (USE_SHEETS) saveVisitToSheets(visit);
+  });
+  localSave();
+  closeModalDirect();
+  switchTab('schedule');
+}
+
 function renderSchedule() {
   const now = new Date();
   const todayStr = toDateStr(now);
@@ -1054,12 +1229,15 @@ function renderSchedule() {
     }).join('');
   }
 
-  return '<div class="section-title">Available Right Now — ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) + '</div>'
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    + '<div class="section-title" style="margin-bottom:0">Available Right Now — ' + now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) + '</div>'
+    + '<button class="btn btn-sm btn-primary" onclick="generateAutoSchedule()" style="background:linear-gradient(135deg,var(--sky2),var(--indigo));display:flex;align-items:center;gap:6px">✨ Auto-Schedule</button>'
+    + '</div>'
     + availHTML
     + closingHTML
     + '<div style="display:flex;align-items:center;justify-content:space-between">'
     +   "<div class=\"section-title\" style=\"margin-bottom:0\">Today's Planned Visits</div>"
-    +   '<button class="btn btn-sm btn-primary" onclick="openPlanVisitModal()">+ Plan Visit</button>'
+    +   '<button class="btn btn-sm btn-secondary" onclick="openPlanVisitModal()">+ Plan Visit</button>'
     + '</div>'
     + '<div style="height:10px"></div>'
     + visitsHTML
