@@ -1104,6 +1104,25 @@ function generateAutoSchedule() {
   `);
 }
 
+
+function deduplicateTodaysVisits() {
+  const today = toDateStr(new Date());
+  const seen = new Set();
+  const before = state.visits.length;
+  state.visits = state.visits.filter(v => {
+    if (v.visitDate !== today) return true;
+    const key = String(v.teacherId) + '_' + today;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const removed = before - state.visits.length;
+  localSave();
+  render();
+  if (removed > 0) showSync(`✓ Removed ${removed} duplicate${removed>1?'s':''}`);
+  else showSync('No duplicates found');
+}
+
 let pendingAutoSchedule = [];
 
 async function addScheduleToPlanner() {
@@ -1113,22 +1132,33 @@ async function addScheduleToPlanner() {
     const m = mins % 60;
     return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   };
+
+  // Build set of teacher IDs already planned today to avoid duplicates
+  const alreadyPlanned = new Set(
+    state.visits
+      .filter(v => v.visitDate === today && v.status !== 'cancelled')
+      .map(v => String(v.teacherId))
+  );
+
   for (const s of pendingAutoSchedule) {
-    const existing = state.visits.find(v => v.teacherId == s.id && v.visitDate === today && v.status !== 'cancelled');
-    if (existing) continue;
+    if (alreadyPlanned.has(String(s.id))) continue; // skip if already planned today
+    alreadyPlanned.add(String(s.id)); // prevent duplicates within this batch
+
+    const timeStr = toTimeStr(s.startMins);
     const visit = {
-      id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
       teacherId: s.id,
       teacherName: s.name,
       visitDate: today,
-      visitTime: toTimeStr(s.startMins),
+      visitTime: timeStr,
       coach: state.currentCoach,
       status: 'planned',
       notes: 'Auto-scheduled (10 min)',
       createdAt: new Date().toISOString()
     };
     state.visits.push(visit);
-    if (USE_SHEETS) { await apiPost('saveVisit', visit); }
+    if (USE_SHEETS) { await apiPost('saveVisit', visit); showSync('✓ Saved'); }
+    await new Promise(r => setTimeout(r, 100)); // small delay so IDs are unique
   }
   pendingAutoSchedule = [];
   localSave();
@@ -1250,9 +1280,12 @@ function renderSchedule() {
     + '</div>'
     + availHTML
     + closingHTML
-    + '<div style="display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
     +   "<div class=\"section-title\" style=\"margin-bottom:0\">Today's Planned Visits</div>"
+    +   '<div style="display:flex;gap:6px">'
+    +   '<button class="btn btn-sm" style="background:#fef2f2;color:#dc2626;font-size:11px" onclick="deduplicateTodaysVisits()" title="Remove duplicate visits">🧹 Dedupe</button>'
     +   '<button class="btn btn-sm btn-secondary" onclick="openPlanVisitModal()">+ Plan Visit</button>'
+    +   '</div>'
     + '</div>'
     + '<div style="height:10px"></div>'
     + visitsHTML
