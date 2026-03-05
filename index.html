@@ -1075,6 +1075,8 @@ function generateAutoSchedule() {
 
   const todayFmt = today.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
 
+  pendingAutoSchedule = slots.map(s => ({ id: s.teacher.id, name: s.teacher.name, startMins: s.startMins }));
+
   openModal(`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
@@ -1087,38 +1089,43 @@ function generateAutoSchedule() {
     <div style="margin-top:18px;padding:12px;background:#f0fdf4;border-radius:10px;font-size:12px;color:#15803d;font-weight:700;text-align:center">
       📋 ${slots.length} observation${slots.length>1?'s':''} · ~${slots.length * 15} min total
     </div>
-    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="addScheduleToPlanner(${JSON.stringify(slots.map(s=>({id:s.teacher.id,name:s.teacher.name,startMins:s.startMins})))})">
+    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="addScheduleToPlanner()">
       Add All to Today's Planner →
     </button>` : ''}
     <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeModalDirect()">Close</button>
   `);
 }
 
-function addScheduleToPlanner(slotData) {
+let pendingAutoSchedule = [];
+
+async function addScheduleToPlanner() {
   const today = toDateStr(new Date());
   const toTimeStr = mins => {
     const h = Math.floor(mins/60);
     const m = mins % 60;
     return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
   };
-  slotData.forEach(s => {
+  for (const s of pendingAutoSchedule) {
     const existing = state.visits.find(v => v.teacherId == s.id && v.visitDate === today && v.status !== 'cancelled');
-    if (existing) return; // skip if already planned
+    if (existing) continue;
     const visit = {
-      id: 'v' + Date.now() + Math.random().toString(36).slice(2,6),
+      id: Date.now().toString() + Math.random().toString(36).slice(2,6),
       teacherId: s.id,
       teacherName: s.name,
       visitDate: today,
       visitTime: toTimeStr(s.startMins),
       coach: state.currentCoach,
       status: 'planned',
-      notes: 'Auto-scheduled (10 min)'
+      notes: 'Auto-scheduled (10 min)',
+      createdAt: new Date().toISOString()
     };
     state.visits.push(visit);
-    if (USE_SHEETS) saveVisitToSheets(visit);
-  });
+    if (USE_SHEETS) { await apiPost('saveVisit', visit); }
+  }
+  pendingAutoSchedule = [];
   localSave();
   closeModalDirect();
+  render();
   switchTab('schedule');
 }
 
