@@ -835,9 +835,11 @@ let goalReadinessCache = {}; // teacherId -> {text, loading}
 async function callClaude(prompt, maxTokens) {
   maxTokens = maxTokens || 200;
   if (!USE_SHEETS || !SCRIPT_URL) {
-    return '[AI features require Google Sheets backend to be connected.]';
+    showSync('AI needs Sheets backend connected', true);
+    return '';
   }
   try {
+    showSync('Calling AI...');
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -847,11 +849,16 @@ async function callClaude(prompt, maxTokens) {
         maxTokens: maxTokens
       })
     });
-    const data = await res.json();
-    if (data.error) { console.warn('Claude proxy error:', data.error); return ''; }
-    return data.text || '';
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch(e) { showSync('Bad response: ' + raw.slice(0, 80), true); return ''; }
+    if (data.error) { showSync('AI error: ' + data.error.slice(0, 80), true); return ''; }
+    if (!data.text) { showSync('AI returned empty response', true); return ''; }
+    showSync('✓ AI response received');
+    return data.text;
   } catch(e) {
-    console.warn('callClaude failed:', e);
+    showSync('AI call failed: ' + e.message.slice(0, 80), true);
     return '';
   }
 }
