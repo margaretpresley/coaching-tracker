@@ -938,7 +938,7 @@ function render() {
 
 // ── DASHBOARD ──────────────────────────────────────────
 function renderDashboard() {
-  const week = state.observations.filter(o => daysSince(o.date) <= 7).length;
+  const week = state.observations.filter(o => isThisWeek(o.date)).length;
   const flags = state.observations.filter(o => o.followUpNeeded === true || o.followUpNeeded === 'TRUE').length;
   const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
@@ -1361,7 +1361,7 @@ function renderAnalytics() {
   const realObs = state.observations.filter(o => !o.missed && o.impression !== 'Missed visit');
   const total = realObs.length;
   const today = toDateStr(new Date());
-  const thisWeek = realObs.filter(o => daysSince(o.date) <= 7).length;
+  const thisWeek = realObs.filter(o => isThisWeek(o.date)).length;
   const thisMonth = realObs.filter(o => daysSince(o.date) <= 30).length;
 
   // Goal distribution
@@ -2047,6 +2047,22 @@ function updateNavBadge() {
 function viewTeacher(id) {
   state.viewingTeacher = id;
   render();
+}
+
+function startOfThisWeek() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
+  const diff = (day === 0 ? -6 : 1 - day); // roll back to Monday
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff);
+  mon.setHours(0, 0, 0, 0);
+  return mon;
+}
+
+function isThisWeek(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + 'T00:00:00');
+  return d >= startOfThisWeek();
 }
 
 function toDateStr(d) {
