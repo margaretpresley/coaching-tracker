@@ -692,6 +692,8 @@ let teacherForm = {};
 let privacyMode = false;
 let activityExpanded = false;
 let alertsExpanded = false;
+let teacherSortMode = 'priority'; // priority | firstName | lastName | goal | coach | gradeBand
+let newsletterCache = { text: null, loading: false, weekOf: null };
 
 // ══════════════════════════════════════════════════════
 // API / STORAGE
@@ -774,10 +776,7 @@ function normalizeData() {
       if (typeof t.availabilityWindows === 'string') {
         try { t.availabilityWindows = JSON.parse(t.availabilityWindows); } catch(e) { t.availabilityWindows = []; }
       }
-      t.availabilityWindows = (t.availabilityWindows || []).map(w => ({
-        start: normalizeTime(w.start),
-        end: normalizeTime(w.end)
-      })).filter(w => w.start && w.end);
+      t.availabilityWindows = (t.availabilityWindows || []).map(function(w) { return { start: normalizeTime(w.start), end: normalizeTime(w.end) }; }).filter(function(w) { return w.start && w.end; });
       // Migrate legacy to windows if windows empty
       if (!t.availabilityWindows.length && t.availabilityStart && t.availabilityEnd) {
         t.availabilityWindows = [{ start: t.availabilityStart, end: t.availabilityEnd }];
@@ -824,6 +823,240 @@ async function syncFromSheets() {
     showSync('Sync failed — using local data', true);
     localLoad();
   }
+}
+
+
+// ══════════════════════════════════════════════════════
+// AI ENGINE (Anthropic API)
+// ══════════════════════════════════════════════════════
+let dailyBriefCache = { date: null, text: null, loading: false };
+let goalReadinessCache = {}; // teacherId -> {text, loading}
+
+async function callClaude(prompt, maxTokens) {
+  maxTokens = maxTokens || 200;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  } catch(e) {
+    return '';
+  }
+}
+
+async function loadDailyBrief() {
+  const today = toDateStr(new Date());
+  if (dailyBriefCache.date === today && dailyBriefCache.text) return;
+  if (dailyBriefCache.loading) return;
+  if (state.observations.length < 3) return;
+
+  dailyBriefCache.loading = true;
+  dailyBriefCache.date = today;
+  dailyBriefCache.text = null;
+  render(); // show loading state
+
+  const realObs = state.observations.filter(o => !o.missed && o.impression !== 'Missed visit');
+  const flagged = getFlaggedTeachers().map(t => t.name);
+  const gaps = getPersistentGapTeachers().map(g => g.teacher.name + ' (' + g.lookFor + ')');
+  const overdue = state.teachers.filter(t => {
+    const tObs = realObs.filter(o => o.teacherId == t.id);
+    if (!tObs.length) return true;
+    const last = tObs.sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    return daysSince(last.date) > 14;
+  }).map(t => t.name);
+
+  const recentTrends = state.teachers.map(t => {
+    const tObs = realObs.filter(o => o.teacherId == t.id)
+      .sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-3);
+    if (tObs.length < 2) return null;
+    const prev = IMPRESSION_SCORE[tObs[tObs.length-2].impression] || 2;
+    const curr = IMPRESSION_SCORE[tObs[tObs.length-1].impression] || 2;
+    if (curr > prev) return t.name + ' (trending up)';
+    return null;
+  }).filter(Boolean);
+
+  const prompt = `You are a coaching support assistant for two instructional coaches (Dr. Presley and Mrs. Rickett) at an elementary school. Write a brief, warm, professional daily coaching brief for today (${today}). Be specific and actionable. Use plain sentences, no bullet points, no headers. Keep it to 3-4 sentences max.
+
+Here is the current caseload data:
+- Total teachers: ${state.teachers.length}
+- Observations this week: ${realObs.filter(o => isThisWeek(o.date)).length}
+- Flagged for follow-up: ${flagged.length > 0 ? flagged.join(', ') : 'none'}
+- Persistent look-for gaps: ${gaps.length > 0 ? gaps.join('; ') : 'none'}
+- Overdue for visit (14+ days): ${overdue.length > 0 ? overdue.slice(0,4).join(', ') + (overdue.length > 4 ? ' and ' + (overdue.length-4) + ' more' : '') : 'none'}
+- Positive trends: ${recentTrends.length > 0 ? recentTrends.join(', ') : 'none noted'}
+
+Write the brief now:`;
+
+  const text = await callClaude(prompt, 250);
+  dailyBriefCache.text = text;
+  dailyBriefCache.loading = false;
+  render();
+}
+
+async function loadGoalReadiness(teacherId) {
+  if (goalReadinessCache[teacherId]?.text || goalReadinessCache[teacherId]?.loading) return;
+  const t = state.teachers.find(x => x.id == teacherId);
+  if (!t) return;
+  const realObs = state.observations
+    .filter(o => o.teacherId == teacherId && !o.missed && o.impression !== 'Missed visit')
+    .sort((a,b) => new Date(a.date)-new Date(b.date));
+  if (realObs.length < 3) return; // need at least 3
+
+  const goals = GOALS[t.gradeBand] || [];
+  const goalObj = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+  if (!goalObj) return;
+  const nextGoal = goals.find(g => g.id === parseInt(t.currentGoal || 1) + 1);
+  if (!nextGoal) return; // already at last goal
+
+  goalReadinessCache[teacherId] = { loading: true, text: null };
+
+  const last3 = realObs.slice(-3);
+  const obsDetails = last3.map(o => {
+    let r = o.lookForResponses || {};
+    if (typeof r === 'string') { try { r = JSON.parse(r); } catch(e) { r = {}; } }
+    const lfSummary = goalObj.lookFors.map((lf, i) => lf + ': ' + (r[i] || 'not rated')).join(', ');
+    return 'Date: ' + o.date + ', Impression: ' + o.impression + ', Look-fors: ' + lfSummary + ', Grow: ' + o.grow;
+  }).join('\n');
+
+  const prompt = `You are an instructional coaching assistant. Based on the last 3 observations for a teacher, assess whether they show readiness to advance to the next coaching goal. Be brief (1-2 sentences max), warm, and honest. Start with either "Ready to advance:" or "Not yet ready:" or "Showing progress:".
+
+Teacher: ${t.name}
+Current goal: Goal ${t.currentGoal} -- ${goalObj.name}
+Next goal would be: Goal ${nextGoal.id} -- ${nextGoal.name}
+
+Last 3 observations:
+${obsDetails}
+
+Your assessment:`;
+
+  const text = await callClaude(prompt, 120);
+  goalReadinessCache[teacherId] = { loading: false, text };
+  render();
+}
+
+
+async function generateNewsletter() {
+  if (newsletterCache.loading) return;
+  newsletterCache.loading = true;
+  newsletterCache.text = null;
+  render();
+
+  const realObs = state.observations.filter(o => !o.missed && o.impression !== 'Missed visit');
+  const weekObs = realObs.filter(o => isThisWeek(o.date));
+
+  // Goal advances this week
+  const advances = [];
+  state.teachers.forEach(t => {
+    const tObs = realObs.filter(o => o.teacherId == t.id).sort((a,b) => new Date(a.date)-new Date(b.date));
+    const weekTObs = tObs.filter(o => isThisWeek(o.date));
+    if (weekTObs.length >= 2) {
+      const first = weekTObs[0], last = weekTObs[weekTObs.length-1];
+      if (parseInt(last.goalNumber) > parseInt(first.goalNumber)) {
+        const goals = GOALS[t.gradeBand] || [];
+        const newGoal = goals.find(g => g.id === parseInt(last.goalNumber));
+        advances.push(t.name + ' advanced to Goal ' + last.goalNumber + (newGoal ? ' (' + newGoal.name + ')' : ''));
+      }
+    }
+  });
+
+  // Strong start teachers this week
+  const strongTeachers = [];
+  state.teachers.forEach(t => {
+    const tWeek = weekObs.filter(o => o.teacherId == t.id);
+    if (tWeek.some(o => o.impression === 'Strong start')) {
+      strongTeachers.push({ name: t.name, glow: tWeek.find(o => o.impression === 'Strong start')?.glow || '' });
+    }
+  });
+
+  // Building-wide look-for trends (positive = mostly Yes/Partial)
+  const lfYes = {}, lfNo = {};
+  weekObs.forEach(o => {
+    let r = o.lookForResponses || {};
+    if (typeof r === 'string') { try { r = JSON.parse(r); } catch(e) { return; } }
+    const goals = GOALS[state.teachers.find(t => t.id == o.teacherId)?.gradeBand] || [];
+    const goal = goals.find(g => g.id === parseInt(o.goalNumber));
+    if (!goal) return;
+    Object.entries(r).forEach(([idx, val]) => {
+      const lf = goal.lookFors[parseInt(idx)];
+      if (!lf) return;
+      if (val === 'Yes') lfYes[lf] = (lfYes[lf]||0) + 1;
+      if (val === 'No')  lfNo[lf]  = (lfNo[lf]||0)  + 1;
+    });
+  });
+  const topPositive = Object.entries(lfYes).sort((a,b) => b[1]-a[1]).slice(0,2).map(([lf]) => lf);
+  const topGrowth   = Object.entries(lfNo).sort((a,b) => b[1]-a[1]).slice(0,2).map(([lf]) => lf);
+
+  const impressionCounts = { 'Strong start': 0, 'On track': 0, 'Support needed': 0 };
+  weekObs.forEach(o => { if (impressionCounts[o.impression] !== undefined) impressionCounts[o.impression]++; });
+
+  const weekStr = startOfThisWeek().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  const prompt = `You are helping two instructional coaches write a warm, celebratory Friday newsletter summary for their elementary school teaching staff. The newsletter is sent Monday morning, so it should look ahead with encouragement. Write in a warm, professional, human tone. Use short paragraphs. Include these sections:
+
+1. A brief opening celebrating the week (1-2 sentences)
+2. Teacher shoutouts (use the data below -- be specific and name teachers)
+3. Positive trends we're seeing across the building
+4. One area for growth with 2-3 concrete instructional strategies teachers can try
+
+Week of: ${weekStr}
+Total observations this week: ${weekObs.length}
+Impressions: ${impressionCounts['Strong start']} Strong start, ${impressionCounts['On track']} On track, ${impressionCounts['Support needed']} Support needed
+Goal advances this week: ${advances.length > 0 ? advances.join('; ') : 'none'}
+Teachers with Strong start observations: ${strongTeachers.length > 0 ? strongTeachers.map(t => t.name + (t.glow ? ' (' + t.glow.slice(0,60) + ')' : '')).join('; ') : 'none noted'}
+Building-wide strengths (most common Yes look-fors): ${topPositive.length > 0 ? topPositive.join(', ') : 'not enough data'}
+Area for growth (most common No look-fors): ${topGrowth.length > 0 ? topGrowth.join(', ') : 'not enough data'}
+
+Write the newsletter now. Do not include headers like "Section 1" -- just write naturally. Keep it under 300 words.`;
+
+  const text = await callClaude(prompt, 500);
+  newsletterCache.text = text;
+  newsletterCache.loading = false;
+  newsletterCache.weekOf = weekStr;
+  render();
+}
+
+function copyNewsletter() {
+  const el = document.getElementById('newsletter-text');
+  if (!el) return;
+  el.select();
+  el.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(el.value).then(() => showSync('Copied!')).catch(() => { document.execCommand('copy'); showSync('Copied!'); });
+  } catch(e) { document.execCommand('copy'); showSync('Copied!'); }
+}
+
+async function generateObsSummary(obs, teacher, goal) {
+  const realObs = state.observations
+    .filter(o => o.teacherId == teacher.id && !o.missed && o.impression !== 'Missed visit')
+    .sort((a,b) => new Date(a.date)-new Date(b.date));
+
+  let r = obs.lookForResponses || {};
+  if (typeof r === 'string') { try { r = JSON.parse(r); } catch(e) { r = {}; } }
+  const lfSummary = goal ? goal.lookFors.map((lf, i) => lf + ': ' + (r[i] || 'not rated')).join('; ') : '';
+
+  const historyNote = realObs.length > 1
+    ? 'Previous impressions: ' + realObs.slice(-3, -1).map(o => o.impression).join(', ')
+    : 'This is their first observation.';
+
+  const prompt = `You are an instructional coach writing a private one-line coaching note (not shared with the teacher). Write exactly one sentence summarizing the coaching trend or key observation. Be specific, professional, and coach-focused. Do not start with the teacher name.
+
+Teacher: ${teacher.name}, Goal ${obs.goalNumber}
+Today's impression: ${obs.impression}
+Look-fors: ${lfSummary}
+Glow: ${obs.glow}
+Grow: ${obs.grow}
+${historyNote}
+
+One-line private coaching note:`;
+
+  return await callClaude(prompt, 80);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1047,6 +1280,8 @@ function renderDashboard() {
   const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
   const alertsHTML = renderAlerts();
+  // Trigger daily brief load (no-op if already loaded)
+  loadDailyBrief();
 
   const activityHTML = recent.length === 0
     ? `<div class="empty"><div class="e-icon">📋</div><p>No observations yet.<br>Tap Observe to get started.</p></div>`
@@ -1064,6 +1299,17 @@ function renderDashboard() {
     ${!USE_SHEETS ? configBanner() : ''}
 
     ${alertsHTML}
+
+    ${state.observations.length >= 3 ? `
+    <div class="insight-card" style="margin-bottom:12px">
+      <div class="ic-label">🌅 Today's Coaching Brief</div>
+      ${dailyBriefCache.loading
+        ? '<div class="ic-text" style="color:#b45309;opacity:.7">Generating your brief…</div>'
+        : dailyBriefCache.text
+          ? '<div class="ic-text">' + dailyBriefCache.text + '</div>'
+          : '<div class="ic-text" style="opacity:.6">Brief will appear here each morning.</div>'
+      }
+    </div>` : ''}
 
     <div class="stats-row">
       <div class="stat-chip chip-sky" style="cursor:pointer" onclick="showGapsModal()">
@@ -1214,11 +1460,25 @@ function renderTeachers() {
   const badgeLabel = { urgent: '🔴 Urgent', overdue: '🟠 Overdue', needs: '🟡 Needs attention' };
   const cardClass  = { urgent: 'tc-urgent', overdue: 'tc-overdue', needs: 'tc-needs' };
 
-  const sorted = [...state.teachers].sort((a, b) => {
-    const pa = PRIORITY_ORDER[getTeacherPriority(a).level] ?? 99;
-    const pb = PRIORITY_ORDER[getTeacherPriority(b).level] ?? 99;
-    return pa - pb;
-  });
+  // Always keep urgent/overdue/needs at top, then apply secondary sort
+  const withPriority = state.teachers.map(t => ({
+    t,
+    p: PRIORITY_ORDER[getTeacherPriority(t).level] ?? 99
+  }));
+
+  const secondarySort = (a, b) => {
+    if (teacherSortMode === 'firstName')  return a.t.name.split(' ')[0].localeCompare(b.t.name.split(' ')[0]);
+    if (teacherSortMode === 'lastName')   return (a.t.name.split(' ').pop()).localeCompare(b.t.name.split(' ').pop());
+    if (teacherSortMode === 'goal')       return parseInt(a.t.currentGoal||1) - parseInt(b.t.currentGoal||1);
+    if (teacherSortMode === 'coach')      return (a.t.primaryCoach||'').localeCompare(b.t.primaryCoach||'');
+    if (teacherSortMode === 'gradeBand')  return (a.t.gradeBand||'').localeCompare(b.t.gradeBand||'');
+    // default priority: already sorted
+    return 0;
+  };
+
+  const sorted = withPriority
+    .sort((a, b) => a.p !== b.p ? a.p - b.p : secondarySort(a, b))
+    .map(x => x.t);
 
   function teacherCard(t) {
     const tObs = state.observations.filter(o => o.teacherId == t.id);
@@ -1241,7 +1501,7 @@ function renderTeachers() {
       +   '</div>'
       + '</div>'
       + (level ? '<div class="priority-badge pb-' + level + '">' + badgeLabel[level] + '</div>' : '')
-      + (reasons.length ? '<div style="font-size:11px;color:var(--body);margin-bottom:8px;line-height:1.6">' + reasons.join(' · ') + '</div>' : '')
+      + (reasons.length ? '<div style="font-size:11px;color:var(--body);margin-bottom:8px;line-height:1.6">' + reasons.join(' &middot; ') + '</div>' : '')
       + '<div class="tc-meta">' + t.gradeBand + ' · Coach ' + t.primaryCoach + (t.room ? ' · Room ' + t.room : '') + '</div>'
       + '<div class="tc-goal">' + (goalObj ? goalObj.emoji : '') + ' Goal ' + (t.currentGoal || 1) + ': ' + (goalObj ? goalObj.name : '') + '</div>'
       + '<div class="goal-progress" style="margin-top:8px">' + stepsHTML + '</div>'
@@ -1254,7 +1514,15 @@ function renderTeachers() {
 
   const cardsHTML = sorted.map(teacherCard).join('');
 
-  return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
+  const sortLabels = { priority: 'Priority', firstName: 'First Name', lastName: 'Last Name', goal: 'Goal', coach: 'Coach', gradeBand: 'Grade Band' };
+
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">'
+    + '<div style="display:flex;align-items:center;gap:6px">'
+    +   '<span style="font-size:12px;color:var(--muted);font-weight:700">Sort:</span>'
+    +   '<select class="form-input" style="font-size:12px;padding:4px 8px;height:auto;width:auto" onchange="teacherSortMode=this.value;render()">'
+    +     Object.entries(sortLabels).map(([v,l]) => '<option value="' + v + '"' + (teacherSortMode===v?' selected':'') + '>' + l + '</option>').join('')
+    +   '</select>'
+    + '</div>'
     + '<button class="btn btn-primary btn-sm" onclick="openAddTeacher()">+ Add Teacher</button>'
     + '</div>'
     + (state.teachers.length === 0
@@ -1347,6 +1615,21 @@ function printTeacherProfile(id) {
   win.document.close();
 }
 
+function renderGoalReadiness(teacherId) {
+  loadGoalReadiness(teacherId);
+  const cache = goalReadinessCache[teacherId];
+  const obsCount = state.observations.filter(o => o.teacherId == teacherId && !o.missed).length;
+  if (!cache && obsCount < 3) return '';
+  if (!cache || cache.loading) return '<div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">&#129302; Assessing goal readiness...</div>';
+  if (!cache.text) return '';
+  const isReady    = cache.text.startsWith('Ready');
+  const isProgress = cache.text.startsWith('Showing');
+  const bg     = isReady ? '#f0fdf4' : isProgress ? '#fefce8' : '#fef2f2';
+  const color  = isReady ? '#15803d' : isProgress ? '#854d0e' : '#9f1239';
+  const border = isReady ? '#bbf7d0' : isProgress ? '#fde68a' : '#fecdd3';
+  return '<div style="margin-top:10px;padding:8px 12px;border-radius:10px;border:1.5px solid ' + border + ';background:' + bg + ';font-size:13px;font-weight:600;color:' + color + '">&#129302; ' + cache.text + '</div>';
+}
+
 function renderLookForHistory(lookForResponses, goalObj) {
   if (!lookForResponses) return '';
   let responses = lookForResponses;
@@ -1399,6 +1682,7 @@ function renderTeacherDetail(id) {
         <div class="goal-name">${goalObj ? goalObj.name : ''}</div>
         <div class="goal-progress">${goals.map(g => `<div class="gp-step ${g.id < parseInt(t.currentGoal||1) ? 'done' : g.id === parseInt(t.currentGoal||1) ? 'current' : ''}"></div>`).join('')}</div>
       </div>
+      ${renderGoalReadiness(t.id)}
 
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-primary btn-sm" onclick="quickObserve('${t.id}')">✏️ Observe Now</button>
@@ -1562,7 +1846,29 @@ function renderAnalytics() {
     : insights.map(s => '<div class="ic-text" style="margin-bottom:8px">' + s + '</div>').join('');
 
   return `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+    <div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Friday Newsletter</div>
+
+    <div class="card" style="border-left:4px solid #6366f1">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:14px;font-weight:800;font-family:Nunito,sans-serif;color:#4338ca">📰 Weekly Summary Generator</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">AI-generated newsletter summary based on this week's observations</div>
+        </div>
+        <button class="btn btn-sm" style="background:#eef2ff;color:#4338ca;flex-shrink:0;font-weight:800"
+          onclick="generateNewsletter()" ${newsletterCache.loading ? 'disabled' : ''}>
+          ${newsletterCache.loading ? '✨ Writing...' : '✨ Generate'}
+        </button>
+      </div>
+      ${newsletterCache.loading
+        ? '<div style="font-size:13px;color:#6366f1;font-style:italic;padding:12px 0">Generating your weekly summary...</div>'
+        : newsletterCache.text
+          ? '<textarea id="newsletter-text" readonly style="width:100%;min-height:260px;border:1px solid #c7d2fe;border-radius:10px;padding:14px;font-size:13px;line-height:1.7;font-family:Nunito,sans-serif;resize:vertical;background:#fafafa;color:var(--body)">' + newsletterCache.text + '</textarea>'
+            + '<button class="btn btn-primary btn-full" style="margin-top:8px;background:#6366f1;border-color:#6366f1" onclick="copyNewsletter()">📋 Copy to Clipboard</button>'
+          : '<div style="font-size:13px;color:var(--muted);padding:8px 0">Tap Generate on Friday afternoon to create your Monday newsletter summary.</div>'
+      }
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;margin-top:4px">
       <div style="font-family:Nunito,sans-serif;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px">Overview</div>
       <button class="privacy-btn ${privacyMode ? 'on' : ''}" onclick="privacyMode=!privacyMode;render()">
         ${privacyMode ? '🔒 Names hidden' : '👁 Hide names'}
@@ -1942,6 +2248,16 @@ async function submitObservation() {
       if (USE_SHEETS) { await apiPost('updateObservation', prev); }
     }
   }
+  // Generate AI coaching note and pre-fill into obs.coachNotes if empty
+  if (!obs.coachNotes) {
+    showSync('✨ Generating coaching note…');
+    const aiNote = await generateObsSummary(obs, teacher, goal);
+    if (aiNote) {
+      obs.coachNotes = aiNote;
+      // Also update Sheets if already saved
+    }
+  }
+
   state.observations.push(obs);
   if (USE_SHEETS) { showSync('Saving…'); await apiPost('saveObservation', obs); showSync('✓ Saved to Sheets'); }
   localSave();
