@@ -839,7 +839,6 @@ async function callClaude(prompt, maxTokens) {
     return '';
   }
   try {
-    showSync('Calling AI...');
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -950,7 +949,7 @@ Your assessment:`;
 
   const text = await callClaude(prompt, 120);
   goalReadinessCache[teacherId] = { loading: false, text };
-  render();
+  if (text) render();
 }
 
 
@@ -1292,8 +1291,6 @@ function renderDashboard() {
   const recent = [...state.observations].reverse().slice(0, 8);
   const availNow = state.teachers.filter(isAvailableNow);
   const alertsHTML = renderAlerts();
-  // Trigger daily brief load (no-op if already loaded)
-  loadDailyBrief();
 
 
   const activityHTML = recent.length === 0
@@ -1315,12 +1312,15 @@ function renderDashboard() {
 
     ${state.observations.length >= 3 ? `
     <div class="insight-card" style="margin-bottom:12px">
-      <div class="ic-label">🌅 Today's Coaching Brief</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="ic-label">🌅 Today's Coaching Brief</div>
+        ${!dailyBriefCache.text && !dailyBriefCache.loading ? '<button class="btn btn-sm" style="background:#fef3c7;color:#92400e;font-weight:800;font-size:11px" onclick="loadDailyBrief()">Generate</button>' : ''}
+      </div>
       ${dailyBriefCache.loading
         ? '<div class="ic-text" style="color:#b45309;opacity:.7">Generating your brief...</div>'
         : dailyBriefCache.text
           ? '<div class="ic-text">' + dailyBriefCache.text + '</div>'
-          : '<div class="ic-text" style="opacity:.6">Brief will appear here each morning.</div>'
+          : '<div class="ic-text" style="opacity:.6">Tap Generate to create your morning brief.</div>'
       }
     </div>` : ''}
 
@@ -1629,12 +1629,12 @@ function printTeacherProfile(id) {
 }
 
 function renderGoalReadiness(teacherId) {
-  loadGoalReadiness(teacherId);
+  // Don't auto-load — only show if already cached
   const cache = goalReadinessCache[teacherId];
   const obsCount = state.observations.filter(o => o.teacherId == teacherId && !o.missed).length;
   if (!cache && obsCount < 3) return '';
-  if (!cache || cache.loading) return '<div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">&#129302; Assessing goal readiness...</div>';
-  if (!cache.text) return '';
+  if (cache?.loading) return '<div style="font-size:12px;color:var(--muted);margin-top:8px;font-style:italic">&#129302; Assessing goal readiness...</div>';
+  if (!cache?.text) return '<button class="btn btn-sm" style="margin-top:8px;background:#ede9fe;color:#4c1d95;font-size:11px;font-weight:800" onclick="loadGoalReadiness(\'' + teacherId + '\');render()">&#129302; Check Goal Readiness</button>';
   const isReady    = cache.text.startsWith('Ready');
   const isProgress = cache.text.startsWith('Showing');
   const bg     = isReady ? '#f0fdf4' : isProgress ? '#fefce8' : '#fef2f2';
