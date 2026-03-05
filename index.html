@@ -1773,10 +1773,38 @@ async function deleteTeacher(id) {
 }
 
 
+const EMAIL_OPENERS = [
+  "Thanks for letting me pop in today!",
+  "It was so great catching your class this morning.",
+  "I really enjoyed stopping by today.",
+  "Thank you for the warm welcome during my visit!",
+  "What a great snapshot of your work — thanks for having me.",
+  "I loved what I got to see during my visit today.",
+  "Thanks for always making me feel welcome in your classroom.",
+  "It was a treat getting to stop in and see your students in action.",
+  "I appreciate you letting me observe today — great things happening in your room.",
+  "Thanks for having me — I always leave your classroom inspired."
+];
+
+// Cycle openers per teacher so the same one never repeats back-to-back
+// Stored as teacherId -> last index used
+const openerIndex = {};
+
+function getOpener(teacherId) {
+  const last = openerIndex[teacherId] !== undefined ? openerIndex[teacherId] : -1;
+  let next = (last + 1) % EMAIL_OPENERS.length;
+  openerIndex[teacherId] = next;
+  return EMAIL_OPENERS[next];
+}
+
 async function submitObservation() {
+  // Prevent double-save
+  const saveBtn = document.querySelector('.btn-primary[onclick="submitObservation()"]');
+  if (saveBtn) { if (saveBtn.disabled) return; saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
   const glow = document.getElementById('obsGlow')?.value || obsForm.glow || '';
   const grow = document.getElementById('obsGrow')?.value || obsForm.grow || '';
   if (!state.selectedTeacherId || !glow || !grow) {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save & Preview Email'; }
     alert('Please fill in the teacher, glow, and grow fields.'); return;
   }
   const teacher = state.teachers.find(t => t.id == state.selectedTeacherId);
@@ -1814,7 +1842,7 @@ Subject: Quick Visit — ${fmtDate(obs.date)}
 
 Hi ${formalName},
 
-Thanks for letting me pop in today!
+${getOpener(teacher.id)}
 
 🌟 What I noticed working well:
 ${glow}
@@ -1849,7 +1877,7 @@ function buildEmail(obsId) {
   const formalName = greeting + ' ' + lastName;
   return `Hi ${formalName},
 
-Thanks for letting me pop in today!
+${getOpener(teacher.id)}
 
 🌟 What I noticed working well:
 ${obs.glow}
