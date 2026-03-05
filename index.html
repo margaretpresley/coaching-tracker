@@ -1016,7 +1016,15 @@ function generateAutoSchedule() {
   // Build slots — fit teachers into their windows, no overlap
   // Convert HH:MM → minutes since midnight
   const toMins = str => {
-    const [h,m] = str.split(':').map(Number);
+    if (!str && str !== 0) return 0;
+    const s = String(str).trim();
+    // Numeric fraction from Sheets (e.g. 0.534 = 12:50 PM)
+    if (s.indexOf(':') === -1) {
+      const num = parseFloat(s);
+      if (!isNaN(num)) return Math.round(num * 24 * 60);
+      return 0;
+    }
+    const [h,m] = s.split(':').map(Number);
     return h * 60 + m;
   };
   const fmtMins = mins => {
