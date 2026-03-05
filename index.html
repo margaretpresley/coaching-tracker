@@ -764,8 +764,25 @@ function normalizeTime(val) {
 function normalizeData() {
   // Fix availability times on teachers
   state.teachers.forEach(t => {
-    t.availabilityStart = normalizeTime(t.availabilityStart);
-    t.availabilityEnd   = normalizeTime(t.availabilityEnd);
+    // Normalize legacy single window
+    if (t.availabilityStart) t.availabilityStart = normalizeTime(t.availabilityStart);
+    if (t.availabilityEnd)   t.availabilityEnd   = normalizeTime(t.availabilityEnd);
+    // Normalize multi-window array
+    if (t.availabilityWindows) {
+      if (typeof t.availabilityWindows === 'string') {
+        try { t.availabilityWindows = JSON.parse(t.availabilityWindows); } catch(e) { t.availabilityWindows = []; }
+      }
+      t.availabilityWindows = (t.availabilityWindows || []).map(w => ({
+        start: normalizeTime(w.start),
+        end: normalizeTime(w.end)
+      })).filter(w => w.start && w.end);
+      // Migrate legacy to windows if windows empty
+      if (!t.availabilityWindows.length && t.availabilityStart && t.availabilityEnd) {
+        t.availabilityWindows = [{ start: t.availabilityStart, end: t.availabilityEnd }];
+      }
+    } else if (t.availabilityStart && t.availabilityEnd) {
+      t.availabilityWindows = [{ start: t.availabilityStart, end: t.availabilityEnd }];
+    }
   });
 
   // Build name→id map from teachers
@@ -812,20 +829,32 @@ async function syncFromSheets() {
 // ══════════════════════════════════════════════════════
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+
+function getTeacherWindows(t) {
+  // New format: availabilityWindows = [{start,end},{start,end},...]
+  if (t.availabilityWindows && t.availabilityWindows.length) {
+    return t.availabilityWindows.filter(w => w.start && w.end);
+  }
+  // Legacy single window fallback
+  if (t.availabilityStart && t.availabilityEnd) {
+    return [{ start: t.availabilityStart, end: t.availabilityEnd }];
+  }
+  return [];
+}
+
 function isAvailableNow(teacher) {
   const now = new Date();
   const dayName = DAYS[now.getDay()];
   const days = (teacher.availableDays || 'Mon,Tue,Wed,Thu,Fri').split(',').map(d => d.trim());
   if (!days.includes(dayName)) return false;
-
-  const start = teacher.availabilityStart;
-  const end = teacher.availabilityEnd;
-  if (!start || !end) return false;
-
+  const windows = getTeacherWindows(teacher);
+  if (!windows.length) return false;
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  return nowMins >= sh * 60 + sm && nowMins <= eh * 60 + em;
+  return windows.some(w => {
+    const [sh, sm] = w.start.split(':').map(Number);
+    const [eh, em] = w.end.split(':').map(Number);
+    return nowMins >= sh * 60 + sm && nowMins <= eh * 60 + em;
+  });
 }
 
 function isAvailableAtTime(teacher, timeStr, dayStr) {
@@ -861,7 +890,7 @@ function renderAvailChip(t) {
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
     +   '<div style="text-align:right">'
-    +     '<div class="ac-time">' + fmtTime(t.availabilityStart) + '&ndash;' + fmtTime(t.availabilityEnd) + '</div>'
+    +     '<div>' + getTeacherWindows(t).map(w => '<div class="ac-time">' + fmtTime(w.start) + '&ndash;' + fmtTime(w.end) + '</div>').join('') + '</div>'
     +     '<div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:2px">' + fmtCoachTitle(t.primaryCoach) + '</div>'
     +   '</div>'
     +   missedBtn
@@ -1279,9 +1308,9 @@ function renderTeacherDetail(id) {
 
       <div style="font-size:13px;font-weight:700;margin-bottom:10px">Availability Window</div>
       <div style="font-size:13px;color:var(--muted)">
-        ${t.availabilityStart && t.availabilityEnd
-          ? `${fmtTime(t.availabilityStart)} – ${fmtTime(t.availabilityEnd)} · ${(t.availableDays||'').replace(/,/g,' ')}`
-          : 'Not set — tap Edit to add availability window'
+        ${getTeacherWindows(t).length
+          ? getTeacherWindows(t).map((w,i) => `<div>${i>0?'<span style="font-size:11px;color:var(--muted)">Window '+(i+1)+'</span> ':''}${fmtTime(w.start)} – ${fmtTime(w.end)}</div>`).join('') + `<div style="margin-top:2px">${(t.availableDays||'').replace(/,/g,' ')}</div>`
+          : 'Not set — tap Edit to add availability windows'
         }
       </div>
     </div>
@@ -1562,7 +1591,10 @@ function openAddTeacher() {
 }
 function openEditTeacher(id) {
   const t = state.teachers.find(x => x.id == id);
-  teacherForm = { ...t, availableDays: (t.availableDays||'Mon,Tue,Wed,Thu,Fri').split(',') };
+  teacherForm = { ...t,
+    availableDays: (t.availableDays||'Mon,Tue,Wed,Thu,Fri').split(','),
+    availabilityWindows: getTeacherWindows(t)
+  };
   openModal(teacherModalHTML(true));
 }
 function teacherModalHTML(isEdit) {
@@ -1622,20 +1654,67 @@ function teacherModalHTML(isEdit) {
         ${daysAll.map(d => `<button type="button" class="day-toggle ${(f.availableDays||[]).includes(d)?'on':''}" onclick="toggleDay('${d}',this)">${d}</button>`).join('')}
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Available From</label>
-        <input class="form-input" type="time" id="tf-start" value="${f.availabilityStart||''}">
+    <div class="form-group">
+      <label class="form-label">Availability Windows <span style="font-weight:500;font-size:11px">(up to 4)</span></label>
+      <div id="tf-windows">
+        ${(f.availabilityWindows && f.availabilityWindows.length ? f.availabilityWindows : [{start: f.availabilityStart||'', end: f.availabilityEnd||''}]).map((w,i) => `
+          <div class="form-row" style="margin-bottom:6px;align-items:center" id="win-row-${i}">
+            <div class="form-group" style="margin-bottom:0">
+              <input class="form-input" type="time" id="tf-win-start-${i}" value="${w.start||''}">
+            </div>
+            <div style="padding:0 4px;color:var(--muted);font-weight:700;flex-shrink:0">to</div>
+            <div class="form-group" style="margin-bottom:0">
+              <input class="form-input" type="time" id="tf-win-end-${i}" value="${w.end||''}">
+            </div>
+            ${i > 0 ? `<button type="button" onclick="removeWindow(${i})" style="background:none;border:none;color:#dc2626;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px">×</button>` : '<div style="width:24px;flex-shrink:0"></div>'}
+          </div>
+        `).join('')}
       </div>
-      <div class="form-group">
-        <label class="form-label">Available Until</label>
-        <input class="form-input" type="time" id="tf-end" value="${f.availabilityEnd||''}">
-      </div>
+      <button type="button" onclick="addWindow()" id="tf-add-window" style="font-size:12px;color:var(--sky2);background:none;border:1px dashed var(--sky);border-radius:8px;padding:6px 14px;cursor:pointer;margin-top:4px;font-weight:700;width:100%">+ Add Another Window</button>
     </div>
     <button class="btn btn-primary btn-full" onclick="saveTeacher(${isEdit})">
       ${isEdit ? 'Save Changes' : 'Add Teacher'}
     </button>
   `;
+}
+
+
+function addWindow() {
+  const container = document.getElementById('tf-windows');
+  if (!container) return;
+  const rows = container.querySelectorAll('[id^="win-row-"]');
+  if (rows.length >= 4) { alert('Maximum 4 windows'); return; }
+  const i = rows.length;
+  const div = document.createElement('div');
+  div.className = 'form-row';
+  div.style.cssText = 'margin-bottom:6px;align-items:center';
+  div.id = 'win-row-' + i;
+  div.innerHTML = '<div class="form-group" style="margin-bottom:0"><input class="form-input" type="time" id="tf-win-start-' + i + '"></div>'
+    + '<div style="padding:0 4px;color:var(--muted);font-weight:700;flex-shrink:0">to</div>'
+    + '<div class="form-group" style="margin-bottom:0"><input class="form-input" type="time" id="tf-win-end-' + i + '"></div>'
+    + '<button type="button" onclick="removeWindow(' + i + ')" style="background:none;border:none;color:#dc2626;font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px">×</button>';
+  container.appendChild(div);
+}
+
+function removeWindow(i) {
+  const row = document.getElementById('win-row-' + i);
+  if (row) row.remove();
+}
+
+function collectWindows() {
+  const windows = [];
+  const container = document.getElementById('tf-windows');
+  if (!container) return windows;
+  const rows = container.querySelectorAll('[id^="win-row-"]');
+  rows.forEach(row => {
+    const idx = row.id.replace('win-row-', '');
+    const s = document.getElementById('tf-win-start-' + idx);
+    const e = document.getElementById('tf-win-end-' + idx);
+    if (s && e && s.value && e.value) {
+      windows.push({ start: s.value, end: e.value });
+    }
+  });
+  return windows;
 }
 
 function toggleDay(day, el) {
@@ -1657,8 +1736,9 @@ async function saveTeacher(isEdit) {
     gradeBand: document.getElementById('tf-band').value,
     primaryCoach: document.getElementById('tf-coach').value,
     currentGoal: isEdit ? parseInt(document.getElementById('tf-goal').value) : 1,
-    availabilityStart: document.getElementById('tf-start').value,
-    availabilityEnd: document.getElementById('tf-end').value,
+    availabilityWindows: collectWindows(),
+    availabilityStart: collectWindows()[0]?.start || '',
+    availabilityEnd: collectWindows()[0]?.end || '',
     availableDays: (teacherForm.availableDays||[]).join(','),
     status: 'active',
     createdAt: isEdit ? teacherForm.createdAt : new Date().toISOString()
@@ -2054,20 +2134,21 @@ function getTeacherPriority(t) {
 
 // ── Window closing soon (within 15 mins, not yet visited this week) ──────────
 function isWindowClosingSoon(t) {
-  if (!t.availabilityEnd) return false;
+  const windows = getTeacherWindows(t);
+  if (!windows.length) return false;
   const now = new Date();
   const dayName = DAYS[now.getDay()];
   const days = (t.availableDays || 'Mon,Tue,Wed,Thu,Fri').split(',').map(d => d.trim());
   if (!days.includes(dayName)) return false;
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  const [eh, em] = t.availabilityEnd.split(':').map(Number);
-  const endMins = eh * 60 + em;
-  const minsLeft = endMins - nowMins;
-  if (minsLeft < 0 || minsLeft > 15) return false;
-  // Only warn if not seen this week
+  const closing = windows.some(w => {
+    const [eh, em] = w.end.split(':').map(Number);
+    const minsLeft = eh * 60 + em - nowMins;
+    return minsLeft >= 0 && minsLeft <= 15;
+  });
+  if (!closing) return false;
   const tObs = state.observations.filter(o => o.teacherId == t.id);
-  const seenThisWeek = tObs.some(o => daysSince(o.date) <= 7);
-  return !seenThisWeek;
+  return !tObs.some(o => daysSince(o.date) <= 7);
 }
 
 // ══════════════════════════════════════════════════════
