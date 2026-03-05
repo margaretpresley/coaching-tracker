@@ -619,6 +619,30 @@ let state = {
 // ══════════════════════════════════════════════════════
 // GOALS
 // ══════════════════════════════════════════════════════
+
+// ── 3-5 Writing goal migration map (old 6-goal -> new 5-goal) ────────────────
+const WRITING_GOAL_MIGRATION = { 1: 1, 2: 2, 3: 2, 4: 4, 5: 3, 6: 5 };
+
+function migrateWritingGoals() {
+  // Run once — migrates 3-5 Writing teachers from old goal numbers to new ones
+  // Uses localStorage flag to ensure it only runs once
+  if (localStorage.getItem('writingGoalsMigrated_v1')) return;
+  let changed = false;
+  state.teachers.forEach(t => {
+    if (t.gradeBand === '3-5 Writing') {
+      const oldGoal = parseInt(t.currentGoal || 1);
+      const newGoal = WRITING_GOAL_MIGRATION[oldGoal] || 1;
+      if (newGoal !== oldGoal) {
+        t.currentGoal = newGoal;
+        changed = true;
+        if (USE_SHEETS) apiPost('updateTeacher', t);
+      }
+    }
+  });
+  localStorage.setItem('writingGoalsMigrated_v1', 'true');
+  if (changed) { localSave(); }
+}
+
 const GOALS = {
   'K-2 UFLI': [
     { id: 1, emoji: '🔵', name: 'Consistent UFLI Routine', lookFors: [
@@ -653,35 +677,35 @@ const GOALS = {
     ]}
   ],
   '3-5 Writing': [
-    { id: 1, emoji: '🔵', name: 'Daily Routine Happens', lookFors: [
-      'Grade-level text used during instruction',
-      'Students complete a short written response',
-      'Writing is tied directly to the text'
+    { id: 1, emoji: '🔵', name: 'Everyone Reads the Text', lookFors: [
+      'Grade-level text (or equivalent content-area reading) is present and central to the lesson',
+      'All students are expected to engage with the text — no student is working on something entirely different',
+      'Scaffolds are in use for students who need access supports (read aloud, chunked text, visual supports, etc.)',
+      'Teacher references the text explicitly during instruction'
     ]},
-    { id: 2, emoji: '🟢', name: 'Understand Before Writing', lookFors: [
-      'Turn-and-talk or oral rehearsal occurs',
-      'Teacher prompts understanding',
-      'Students can say an idea before writing'
+    { id: 2, emoji: '🟢', name: 'Students Think Into the Text', lookFors: [
+      'Students are marking the text in some way (underlining, circling, boxing, margin notes)',
+      'Annotation is happening during or immediately after reading — not skipped',
+      'Teacher references student annotations during instruction or discussion',
+      'Annotation purpose is clear (e.g., students know what they\'re looking for)'
     ]},
-    { id: 3, emoji: '🟩', name: 'Find Evidence', lookFors: [
-      'Students underline, box, or point to evidence',
-      'Teacher asks "Where did you find that?"',
-      'Evidence is identified before writing'
+    { id: 3, emoji: '🟡', name: 'Most Kids Are in the Conversation', lookFors: [
+      'A structured discussion protocol is in use (turn-and-talk, Strive for 5, small group, whole class, etc.)',
+      'Most students are verbally participating — not just a few',
+      'Students are referencing the text or content in their contributions',
+      'Teacher facilitates without dominating — student voice carries the conversation'
     ]},
-    { id: 4, emoji: '🟡', name: 'Write WITH Evidence', lookFors: [
-      'Sentence frames or models used as needed',
-      'Writing includes quotes, paraphrases, or references',
-      'Response connects claim → evidence'
+    { id: 4, emoji: '🟠', name: 'Writing Includes Evidence', lookFors: [
+      'Students are producing a written response tied to the text or content',
+      'Writing includes a quote, paraphrase, reference, or citation — not just opinion',
+      'Sentence frames or writing models are visible and available',
+      'Teacher checks that writing connects a claim to evidence, not just restates a fact'
     ]},
-    { id: 5, emoji: '🟣', name: 'Clarity & Complete Thoughts', lookFors: [
-      'Responses are in complete sentences',
-      'Capitals/punctuation added after ideas',
-      'Teacher checks for clarity'
-    ]},
-    { id: 6, emoji: '🟠', name: 'Extend Thinking', lookFors: [
-      'Students explain why evidence matters',
-      'Students compare ideas or add one meaningful detail',
-      'Extension is focused, not filler'
+    { id: 5, emoji: '🟣', name: 'Thinking Goes Deeper', lookFors: [
+      'A follow-up prompt or question pushes students beyond basic recall',
+      'Students are explaining significance, making connections, or comparing ideas',
+      'Extensions are focused and content-specific — not generic filler',
+      'Teacher holds students to reasoning, not just more words on the page'
     ]}
   ]
 };
@@ -814,6 +838,7 @@ async function syncFromSheets() {
     state.teachers = data.teachers || [];
     state.observations = data.observations || [];
     normalizeData();
+    migrateWritingGoals();
     localSave();
     state.lastSync = new Date();
     document.getElementById('syncStatus').textContent = '● live · ' + state.lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -2287,7 +2312,7 @@ ${glow}
 ${grow}
 
 📍 You're currently working on:
-${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalNum}
+${goal ? goal.emoji + ' ' + goal.name : 'your current coaching goal'}
 
 Keep up the great work!
 
@@ -2322,7 +2347,7 @@ ${obs.glow}
 ${obs.grow}
 
 📍 You're currently working on:
-${goal ? goal.emoji + ' Goal ' + goal.id + ' — ' + goal.name : 'Goal ' + goalNum}
+${goal ? goal.emoji + ' ' + goal.name : 'your current coaching goal'}
 
 Keep up the great work!
 
@@ -2392,12 +2417,80 @@ async function advanceGoalFor(teacherId) {
   if (!t) return;
   const goals = GOALS[t.gradeBand] || [];
   const next = parseInt(t.currentGoal || 1) + 1;
-  if (next > goals.length) { alert('Teacher has completed all goals! You can add custom goals beyond Goal 6.'); return; }
-  if (!confirm(`Advance ${t.name} to Goal ${next}?`)) return;
+  if (next > goals.length) { alert('This teacher has completed all coaching goals — amazing work!'); return; }
+  const currentGoal = goals.find(g => g.id === parseInt(t.currentGoal || 1));
+  const nextGoal = goals.find(g => g.id === next);
+  if (!confirm('Advance ' + t.name + ' to ' + (nextGoal ? nextGoal.name : 'next goal') + '?')) return;
+
+  // Advance the goal first
   t.currentGoal = next;
   if (USE_SHEETS) { await apiPost('updateTeacher', t); showSync('✓ Goal advanced'); }
   localSave();
   render();
+
+  // Generate congratulations email
+  showSync('Generating congratulations email...');
+  const tObs = state.observations
+    .filter(o => o.teacherId == t.id && !o.missed && o.impression !== 'Missed visit')
+    .sort((a,b) => new Date(a.date)-new Date(b.date))
+    .slice(-4);
+
+  const recentGlows = tObs.map(o => o.glow).filter(Boolean).join('; ');
+  const lastName = t.name.trim().split(' ').pop();
+  const greeting = t.greeting || 'Ms.';
+  const formalName = greeting + ' ' + lastName;
+  const coach = fmtCoachTitle(state.currentCoach);
+
+  const prompt = 'Write a warm, celebratory email from an instructional coach to a teacher who has just reached a new coaching milestone. Do NOT mention goal numbers. Use only the goal name. Keep it to 3-4 short paragraphs. Be specific about what the coach has been seeing. End with excitement about what comes next.' +
+    '\n\nTeacher name: ' + formalName +
+    '\nCoach: ' + coach +
+    '\nWhat we have been consistently seeing (recent observation glows): ' + (recentGlows || 'strong teaching practices and student engagement') +
+    '\nCurrent milestone reached: ' + (currentGoal ? currentGoal.name : 'previous goal') +
+    '\nNext coaching focus: ' + (nextGoal ? nextGoal.name + ' -- ' + nextGoal.lookFors.join(', ') : 'next goal') +
+    '\n\nStart with: Hi ' + formalName + ',' +
+    '\nEnd with: -- ' + coach +
+    '\nDo not use the word "goal" or any goal numbers. Refer to coaching focuses by name only.';
+
+  const emailText = await callClaude(prompt, 400);
+
+  if (emailText) {
+    showAdvanceEmailModal(emailText, t, nextGoal, coach);
+  } else {
+    // Fallback template if AI fails
+    const fallback = 'Hi ' + formalName + ',\n\nCongratulations!! We have been so impressed by what we have been seeing in your classroom, and we are thrilled to let you know that you are ready to move into our next coaching focus together.\n\nAs we move into ' + (nextGoal ? nextGoal.name : 'your next focus') + ', here is what we will be looking for:\n' + (nextGoal ? nextGoal.lookFors.map(lf => '- ' + lf).join('\n') : '') + '\n\nWe are so proud of your growth and cannot wait to see what comes next!\n\n-- ' + coach;
+    showAdvanceEmailModal(fallback, t, nextGoal, coach);
+  }
+}
+
+function showAdvanceEmailModal(emailText, t, nextGoal, coach) {
+  const subject = 'You\'re Ready for Something New!';
+  openModal(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0">🎉 Congratulations Email</div>
+      <button class="btn btn-sm btn-primary" onclick="copyAdvanceEmail()">📋 Copy</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:4px"><b>To:</b> ${t.name}${t.email ? ' <' + t.email + '>' : ''}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px"><b>Subject:</b> ${subject}</div>
+    <textarea id="advance-email-text" readonly
+      style="width:100%;min-height:300px;border:1px solid var(--border);border-radius:10px;padding:14px;
+             font-size:13px;line-height:1.6;font-family:'Nunito',sans-serif;resize:vertical;
+             background:#fafafa;color:var(--body)"
+    >${emailText}</textarea>
+    <button class="btn btn-primary btn-full" style="margin-top:10px" onclick="copyAdvanceEmail()">📋 Copy to Clipboard</button>
+    ${t.email ? `<a href="mailto:${t.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailText)}"
+       class="btn btn-secondary btn-full" style="margin-top:8px;display:block;text-align:center;text-decoration:none">
+      ✉️ Open in Mail App</a>` : ''}
+    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="closeModalDirect()">Close</button>
+  `);
+}
+
+function copyAdvanceEmail() {
+  const el = document.getElementById('advance-email-text');
+  if (!el) return;
+  el.select(); el.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(el.value).then(() => showSync('Copied!')).catch(() => { document.execCommand('copy'); showSync('Copied!'); });
+  } catch(e) { document.execCommand('copy'); showSync('Copied!'); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -2781,6 +2874,8 @@ document.getElementById('coachSelect').addEventListener('change', e => {
 });
 
 localLoad();
+normalizeData();
+migrateWritingGoals();
 render();
 updateNavBadge();
 syncFromSheets();
