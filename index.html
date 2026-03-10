@@ -1253,7 +1253,7 @@ function renderAvailChip(t) {
     : '';
   return '<div class="avail-chip" style="' + chipStyle + '">'
     + '<div onclick="quickObserve(\'' + id + '\')" style="flex:1;cursor:pointer">'
-    +   '<div class="ac-name" style="' + nameStyle + '">' + t.name + badge + '</div>'
+    +   '<div class="ac-name" style="' + nameStyle + '">' + t.name + badge + (daysSince(state.observations.filter(o=>o.teacherId==t.id).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-1)[0]?.date||'') >= OVERDUE_DAYS ? ' <span title="Overdue for a visit" style="font-size:11px">⏰</span>' : '') + '</div>'
     +   '<div class="ac-meta">' + t.gradeBand + ' &middot; Goal ' + (t.currentGoal || 1) + ' &middot; Room ' + (t.room || '&mdash;') + '</div>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
@@ -1395,9 +1395,19 @@ function renderObserve() {
   const goalNum = parseInt(obsForm.goalNumber || teacher?.currentGoal || 1);
   const goal = goals.find(g => g.id === goalNum);
 
+  // Goal readiness banner — only show if cached and ready
+  const readinessCache = teacher ? goalReadinessCache[teacher.id] : null;
+  const showReadiness = readinessCache?.text?.startsWith('Ready');
+  const readinessBanner = showReadiness
+    ? `<div style="margin-bottom:12px;padding:8px 14px;border-radius:10px;border:1.5px solid #bbf7d0;background:#f0fdf4;font-size:12px;font-weight:700;color:#15803d">
+        ✅ ${teacher.name} may be ready to advance — consider moving to the next goal after this visit
+      </div>`
+    : '';
+
   return `
     <div class="card">
       <div class="card-title">New Observation</div>
+      ${readinessBanner}
 
       <div class="form-row">
         <div class="form-group">
@@ -2753,22 +2763,7 @@ function computeAlerts() {
     const lastObs = tObs[tObs.length - 1];
     const days = lastObs ? daysSince(lastObs.date) : 999;
 
-    // ── 1. Overdue visit (14+ days or never visited) ──
-    if (days >= OVERDUE_DAYS) {
-      alerts.push({
-        type: 'overdue',
-        priority: days > 21 ? 0 : 1,
-        teacher: t,
-        title: `${t.name} — overdue`,
-        sub: lastObs
-          ? `Last seen ${Math.floor(days)} days ago (${fmtDate(lastObs.date)})`
-          : 'Never visited',
-        action: 'Observe now',
-        onclick: `quickObserve('${t.id}')`
-      });
-    }
-
-    // ── 2. Unresolved follow-up flag ──────────────────
+    // ── 1. Unresolved follow-up flag ──────────────────
     if (lastObs && (lastObs.followUpNeeded === true || lastObs.followUpNeeded === 'TRUE')) {
       const revisited = tObs.some(o =>
         new Date(o.date) > new Date(lastObs.date)
@@ -2839,7 +2834,7 @@ function renderAlerts() {
       <div class="ae-icon">🌟</div>
       <div>
         <div class="ae-text">All clear — great work!</div>
-        <div class="ae-sub">No overdue visits, flags, or declining trends right now.</div>
+        <div class="ae-sub">No flags or persistent gaps right now.</div>
       </div>
     </div>`;
   }
