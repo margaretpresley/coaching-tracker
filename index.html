@@ -1350,7 +1350,7 @@ function applyPrintPrivacy() {
     document.head.appendChild(styleEl);
   }
   if (printPrivacy) {
-    styleEl.textContent = '[data-teacher-name] { color: transparent !important; background: #1e293b !important; border-radius: 3px !important; }';
+    styleEl.textContent = '@media print { [data-teacher-name] { color: transparent !important; background: #1e293b !important; border-radius: 3px !important; } }';
   } else {
     styleEl.textContent = '';
   }
