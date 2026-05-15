@@ -511,17 +511,24 @@
     /* ── Print styles ── */
     @media print {
       body { background: white !important; }
-      .nav-bar, .top-bar, .back-btn, .btn, .btn-primary, .btn-secondary,
-      .btn-danger, .btn-sm, .flag-badge, #syncStatus, #coachSelect,
-      .collapsible-arrow { display: none !important; }
-      .main-content { padding: 0 !important; max-width: 100% !important; }
-      .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 12px !important; }
+      .bottom-nav, .top-bar, .back-btn, .btn, .btn-primary, .btn-secondary,
+      .btn-danger, .btn-sm, .flag-badge, #syncBar, #syncStatus, #coachSelect,
+      .collapsible-arrow, .print-btn, .modal-overlay, .privacy-btn,
+      select, input[type=text] { display: none !important; }
+      .main { padding: 16px !important; max-width: 100% !important; }
+      .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; margin-bottom: 12px !important; page-break-inside: avoid; break-inside: avoid; }
       .obs-entry { page-break-inside: avoid; break-inside: avoid; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; padding: 12px; }
       .goal-banner { page-break-inside: avoid; break-inside: avoid; }
-      .print-header { display: block !important; }
+      .teacher-grid { display: block !important; }
+      .teacher-card { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px; }
+      .avail-chip { page-break-inside: avoid; break-inside: avoid; }
+      .stat-chip { page-break-inside: avoid; }
+      .print-header { display: flex !important; }
       .print-only { display: block !important; }
       #printBtn { display: none !important; }
       a { text-decoration: none !important; color: inherit !important; }
+      /* Redacted names */
+      .redacted-name { background: #1e293b !important; color: transparent !important; border-radius: 3px !important; user-select: none !important; }
     }
     .print-header { display: none; }
     .print-only { display: none; }
@@ -1253,7 +1260,7 @@ function renderAvailChip(t) {
     : '';
   return '<div class="avail-chip" style="' + chipStyle + '">'
     + '<div onclick="quickObserve(\'' + id + '\')" style="flex:1;cursor:pointer">'
-    +   '<div class="ac-name" style="' + nameStyle + '">' + t.name + badge + (daysSince(state.observations.filter(o=>o.teacherId==t.id).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-1)[0]?.date||'') >= OVERDUE_DAYS ? ' <span title="Overdue for a visit" style="font-size:11px">⏰</span>' : '') + '</div>'
+    +   '<div class="ac-name" data-teacher-name style="' + nameStyle + '">' + t.name + badge + (daysSince(state.observations.filter(o=>o.teacherId==t.id).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-1)[0]?.date||'') >= OVERDUE_DAYS ? ' <span title="Overdue for a visit" style="font-size:11px">⏰</span>' : '') + '</div>'
     +   '<div class="ac-meta">' + t.gradeBand + ' &middot; Goal ' + (t.currentGoal || 1) + ' &middot; Room ' + (t.room || '&mdash;') + '</div>'
     + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px">'
@@ -1288,19 +1295,78 @@ function fmtTime(t) {
 // ══════════════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════════════
+const TAB_TITLES = {
+  dashboard: 'Dashboard',
+  observe:   'Observation Form',
+  teachers:  'Teachers',
+  analytics: 'Insights'
+};
+
+function renderPrintHeader() {
+  const tab = state.viewingTeacher
+    ? (state.teachers.find(t => t.id == state.viewingTeacher)?.name || 'Teacher Detail')
+    : (TAB_TITLES[state.activeTab] || 'Micro Coaching');
+  const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return '<div class="print-header" style="display:none;align-items:center;justify-content:space-between;' +
+    'border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin-bottom:16px">' +
+    '<div style="font-family:Nunito,sans-serif;font-size:18px;font-weight:900;color:#1e293b">Micro Coaching 2026</div>' +
+    '<div style="text-align:right">' +
+      '<div style="font-size:13px;font-weight:700;color:#475569">' + tab + '</div>' +
+      '<div style="font-size:11px;color:#94a3b8">Printed ' + now + (printPrivacy ? ' &nbsp;|&nbsp; Names redacted' : '') + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderPrintBtn() {
+  return '<button class="print-btn" onclick="triggerPrint()" title="Print this page" ' +
+    'style="position:fixed;top:14px;right:16px;z-index:200;background:white;border:1.5px solid #e2e8f0;' +
+    'border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;color:#475569;cursor:pointer;' +
+    'box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;gap:5px">' +
+    '🖨️ Print</button>';
+}
+
+let printPrivacy = false;
+
+function triggerPrint() {
+  openModal('<div class="card-title" style="margin-bottom:14px">🖨️ Print Options</div>' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">' +
+      '<input type="checkbox" id="printPrivacyCheck" ' + (printPrivacy ? 'checked' : '') + ' onchange="printPrivacy=this.checked">' +
+      '<label for="printPrivacyCheck" style="font-size:14px;font-weight:600">Redact teacher names</label>' +
+    '</div>' +
+    '<button class="btn btn-primary btn-full" onclick="closeModalDirect();applyPrintPrivacy();window.print()">Print / Save as PDF</button>' +
+    '<button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeModalDirect()">Cancel</button>');
+}
+
+function applyPrintPrivacy() {
+  // Add/remove redacted-name class on all name elements
+  document.querySelectorAll('[data-teacher-name]').forEach(el => {
+    if (printPrivacy) {
+      el.dataset.originalText = el.textContent;
+      el.textContent = 'Redacted';
+      el.classList.add('redacted-name');
+    } else {
+      if (el.dataset.originalText) el.textContent = el.dataset.originalText;
+      el.classList.remove('redacted-name');
+    }
+  });
+  // Re-render print header with privacy status
+  document.querySelectorAll('.print-header').forEach(el => {
+    el.outerHTML = renderPrintHeader();
+  });
+}
+
 function render() {
   document.getElementById('coachSelect').value = state.currentCoach;
   const c = document.getElementById('mainContent');
   if (state.viewingTeacher) {
-    c.innerHTML = renderTeacherDetail(state.viewingTeacher);
+    c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderTeacherDetail(state.viewingTeacher);
     return;
   }
   switch(state.activeTab) {
-    case 'dashboard': c.innerHTML = renderDashboard(); break;
-
-    case 'observe':   c.innerHTML = renderObserve();   break;
-    case 'teachers':  c.innerHTML = renderTeachers();  break;
-    case 'analytics': c.innerHTML = renderAnalytics(); break;
+    case 'dashboard': c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderDashboard(); break;
+    case 'observe':   c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderObserve();   break;
+    case 'teachers':  c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderTeachers();  break;
+    case 'analytics': c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderAnalytics(); break;
   }
 }
 
@@ -1537,7 +1603,7 @@ function renderTeachers() {
     ).join('');
     return '<div class="teacher-card ' + extra + '" onclick="viewTeacher(\'' + t.id + '\')">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
-      +   '<div class="tc-name">' + t.name + (isFlaggedTeacher(t.id) ? ' <span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:99px;font-weight:800">🚨</span>' : '') + '</div>'
+      +   '<div class="tc-name" data-teacher-name>' + t.name + (isFlaggedTeacher(t.id) ? ' <span style="font-size:11px;background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:99px;font-weight:800">🚨</span>' : '') + '</div>'
       +   '<div style="display:flex;align-items:center;gap:6px">'
       +     (closing ? '<span style="font-size:11px;font-weight:800;color:#ea580c;font-family:Nunito,sans-serif">⚡</span>' : '')
       +     '<span class="avail-dot ' + (avail ? 'avail-now' : 'avail-no') + '"></span>'
