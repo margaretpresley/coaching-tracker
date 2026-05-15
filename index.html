@@ -564,11 +564,15 @@
     <div class="app-header h1" style="font-size:17px;font-weight:700;letter-spacing:-.3px">📚 Micro Coaching</div>
     <div class="sub" id="syncStatus">● offline mode</div>
   </div>
-  <div class="coach-pill">
-    👤 <select id="coachSelect">
-      <option value="Presley">Presley</option>
-      <option value="Rickett">Rickett</option>
-    </select>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button onclick="triggerPrint()" title="Print this page"
+      style="background:none;border:none;font-size:16px;cursor:pointer;padding:4px;color:#64748b;line-height:1">🖨️</button>
+    <div class="coach-pill">
+      👤 <select id="coachSelect">
+        <option value="Presley">Presley</option>
+        <option value="Rickett">Rickett</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -1338,20 +1342,29 @@ function triggerPrint() {
 }
 
 function applyPrintPrivacy() {
-  // Add/remove redacted-name class on all name elements
-  document.querySelectorAll('[data-teacher-name]').forEach(el => {
-    if (printPrivacy) {
-      el.dataset.originalText = el.textContent;
-      el.textContent = 'Redacted';
-      el.classList.add('redacted-name');
-    } else {
-      if (el.dataset.originalText) el.textContent = el.dataset.originalText;
-      el.classList.remove('redacted-name');
-    }
-  });
-  // Re-render print header with privacy status
+  // Inject a style tag that hides/redacts all [data-teacher-name] elements
+  let styleEl = document.getElementById('print-privacy-style');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'print-privacy-style';
+    document.head.appendChild(styleEl);
+  }
+  if (printPrivacy) {
+    styleEl.textContent = '[data-teacher-name] { color: transparent !important; background: #1e293b !important; border-radius: 3px !important; }';
+  } else {
+    styleEl.textContent = '';
+  }
+  // Update print header privacy note
   document.querySelectorAll('.print-header').forEach(el => {
-    el.outerHTML = renderPrintHeader();
+    const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const tab = state.viewingTeacher
+      ? (state.teachers.find(t => t.id == state.viewingTeacher)?.name || 'Teacher Detail')
+      : (TAB_TITLES[state.activeTab] || 'Micro Coaching');
+    el.innerHTML = '<div style="font-family:Nunito,sans-serif;font-size:18px;font-weight:900;color:#1e293b">Micro Coaching 2026</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:13px;font-weight:700;color:#475569">' + tab + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8">Printed ' + now + (printPrivacy ? ' &nbsp;|&nbsp; Names redacted' : '') + '</div>' +
+      '</div>';
   });
 }
 
@@ -1359,14 +1372,14 @@ function render() {
   document.getElementById('coachSelect').value = state.currentCoach;
   const c = document.getElementById('mainContent');
   if (state.viewingTeacher) {
-    c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderTeacherDetail(state.viewingTeacher);
+    c.innerHTML = renderPrintHeader() + renderTeacherDetail(state.viewingTeacher);
     return;
   }
   switch(state.activeTab) {
-    case 'dashboard': c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderDashboard(); break;
-    case 'observe':   c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderObserve();   break;
-    case 'teachers':  c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderTeachers();  break;
-    case 'analytics': c.innerHTML = renderPrintBtn() + renderPrintHeader() + renderAnalytics(); break;
+    case 'dashboard': c.innerHTML = renderPrintHeader() + renderDashboard(); break;
+    case 'observe':   c.innerHTML = renderPrintHeader() + renderObserve();   break;
+    case 'teachers':  c.innerHTML = renderPrintHeader() + renderTeachers();  break;
+    case 'analytics': c.innerHTML = renderPrintHeader() + renderAnalytics(); break;
   }
 }
 
@@ -1385,7 +1398,7 @@ function renderDashboard() {
         const t = state.teachers.find(x => x.id == obs.teacherId);
         return `<div class="feed-item">
           <div class="meta">${fmtDate(obs.date)} · Goal ${obs.goalNumber} · ${obs.coach}</div>
-          <div class="title">${t ? t.name : 'Unknown Teacher'}</div>
+          <div class="title" data-teacher-name>${t ? t.name : 'Unknown Teacher'}</div>
           <div class="imp">${obs.impression}</div>
           ${obs.followUpNeeded === true || obs.followUpNeeded === 'TRUE' ? `<div class="flag-badge">⚠️ Follow-up needed</div>` : ''}
         </div>`;
@@ -1778,7 +1791,7 @@ function renderTeacherDetail(id) {
     <div class="card">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
         <div>
-          <div style="font-size:20px;font-weight:700;margin-bottom:4px">${t.name}</div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:4px" data-teacher-name>${t.name}</div>
           <div style="font-size:13px;color:var(--muted)">${t.gradeBand} · ${fmtCoachTitle(t.primaryCoach)}${t.room ? ` · Room ${t.room}` : ''}</div>
           ${t.email ? `<div style="font-size:12px;color:var(--teal);margin-top:4px">${t.email}</div>` : ''}
         </div>
