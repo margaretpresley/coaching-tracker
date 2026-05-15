@@ -1342,18 +1342,6 @@ function triggerPrint() {
 }
 
 function applyPrintPrivacy() {
-  // Inject a style tag that hides/redacts all [data-teacher-name] elements
-  let styleEl = document.getElementById('print-privacy-style');
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.id = 'print-privacy-style';
-    document.head.appendChild(styleEl);
-  }
-  if (printPrivacy) {
-    styleEl.textContent = '@media print { [data-teacher-name] { color: transparent !important; background: #1e293b !important; border-radius: 3px !important; } }';
-  } else {
-    styleEl.textContent = '';
-  }
   // Update print header privacy note
   document.querySelectorAll('.print-header').forEach(el => {
     const now = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -1367,6 +1355,30 @@ function applyPrintPrivacy() {
       '</div>';
   });
 }
+
+// Swap names before/after print using beforeprint/afterprint events
+window.addEventListener('beforeprint', () => {
+  if (!printPrivacy) return;
+  document.querySelectorAll('[data-teacher-name]').forEach(el => {
+    el.dataset.origHtml = el.innerHTML;
+    el.textContent = 'Redacted';
+    el.style.background = '#1e293b';
+    el.style.color = '#1e293b';
+    el.style.borderRadius = '3px';
+  });
+});
+
+window.addEventListener('afterprint', () => {
+  document.querySelectorAll('[data-teacher-name]').forEach(el => {
+    if (el.dataset.origHtml !== undefined) {
+      el.innerHTML = el.dataset.origHtml;
+      el.style.background = '';
+      el.style.color = '';
+      el.style.borderRadius = '';
+      delete el.dataset.origHtml;
+    }
+  });
+});
 
 function render() {
   document.getElementById('coachSelect').value = state.currentCoach;
